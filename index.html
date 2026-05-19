@@ -839,8 +839,9 @@ function showInfo(lat,lon,stationOverride,aqStation){
 
 /* ── OpenAQ ── */
 const OPENAQ_URL='https://api.openaq.org/v3/locations?limit=100&parameters_id=2&order_by=lastUpdated&sort_order=desc';
-// Register free at https://explore.openaq.org for an API key, then paste here:
-const OPENAQ_KEY='';
+const OPENAQ_KEY='2167828495e25cd6c4b98081cab06e2bc349e7a10a299e5cafef9a626397a79e';
+// After deploying the Cloudflare Worker, paste the URL here:
+const WORKER_URL='';
 function parseOpenAQ(d){
   openAQStations=[];
   (d.results||[]).forEach(loc=>{if(!loc.coordinates)return;const pm=loc.sensors?.find(s=>s.parameter?.name==='pm25'||s.parameter?.name==='PM2.5');
@@ -850,23 +851,19 @@ function parseOpenAQ(d){
 async function fetchOpenAQ(){
   const st=document.getElementById('api-status');
   st.textContent='OpenAQ: fetching…';
-  const hdrs={'accept':'application/json'};
-  if(OPENAQ_KEY)hdrs['X-API-Key']=OPENAQ_KEY;
-  // 1. Direct (works if CORS enabled or same-origin)
-  try{const r=await fetch(OPENAQ_URL,{headers:hdrs});if(!r.ok)throw 0;parseOpenAQ(await r.json());return;}catch(e){}
-  // 2. allorigins.win (wraps in {contents:...})
-  try{st.textContent='OpenAQ: proxy 1…';
-    const r=await fetch('https://api.allorigins.win/get?url='+encodeURIComponent(OPENAQ_URL));
-    if(!r.ok)throw 0;const w=await r.json();parseOpenAQ(JSON.parse(w.contents));return;}catch(e){}
-  // 3. cors.lol
-  try{st.textContent='OpenAQ: proxy 2…';
-    const r=await fetch('https://api.cors.lol/?url='+encodeURIComponent(OPENAQ_URL));
+  // 1. Cloudflare Worker (best: holds API key server-side, proper CORS)
+  if(WORKER_URL){
+    try{const r=await fetch(WORKER_URL+'?url='+encodeURIComponent(OPENAQ_URL));
+      if(!r.ok)throw 0;parseOpenAQ(await r.json());return;}catch(e){}
+  }
+  // 2. Direct with API key header (works if OpenAQ adds CORS support)
+  try{const r=await fetch(OPENAQ_URL,{headers:{'accept':'application/json','X-API-Key':OPENAQ_KEY}});
     if(!r.ok)throw 0;parseOpenAQ(await r.json());return;}catch(e){}
-  // 4. corsproxy.io
-  try{st.textContent='OpenAQ: proxy 3…';
-    const r=await fetch('https://corsproxy.io/?url='+encodeURIComponent(OPENAQ_URL));
+  // 3. allorigins (no auth header, may 401)
+  try{st.textContent='OpenAQ: proxy…';
+    const r=await fetch('https://api.allorigins.win/raw?url='+encodeURIComponent(OPENAQ_URL+'&api_key='+OPENAQ_KEY));
     if(!r.ok)throw 0;parseOpenAQ(await r.json());return;}catch(e){}
-  st.textContent=OPENAQ_KEY?'OpenAQ: unavailable':'OpenAQ: needs API key';
+  st.textContent='OpenAQ: deploy Worker for live data';
 }
 
 /* ── Search (expanded with cities) ── */
