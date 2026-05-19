@@ -628,9 +628,10 @@ function drawFrame(){
 function drawAnimated(){
   const W=wc.width,H=wc.height;if(!W||!H){requestAnimationFrame(drawAnimated);return;}
   const p=getProj(W,H);
-  // Fade previous frame for trail effect
-  wctx.fillStyle='rgba(6,14,30,0.15)';wctx.fillRect(0,0,W,H);
   pulseT++;
+
+  // Clear wind canvas each frame and redraw - no fade accumulation that blocks the globe
+  wctx.clearRect(0,0,W,H);
 
   if(layers.wind){
     windParticles.forEach(pt=>{
@@ -669,7 +670,7 @@ function drawAnimated(){
     tctx.clearRect(0,0,tc.width,tc.height);
   }
 
-  if(layers.pfas)drawFrame();
+  drawFrame();
   requestAnimationFrame(drawAnimated);
 }
 
