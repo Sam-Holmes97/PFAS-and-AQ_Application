@@ -1,13 +1,22 @@
-
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="description" content="Interactive PFAS and air quality global map with live OpenAQ data, wind and ocean current animations, CDC at-risk areas, and contaminant pathway tracing.">
+<title>PFAS Global Monitor · Sam Holmes</title>
+</head>
+<body>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&family=JetBrains+Mono:wght@400;500&display=swap');
 
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'DM Sans',system-ui,sans-serif;background:transparent;overflow:hidden}
-#app{width:100%;height:700px;display:flex;flex-direction:column;position:relative;background:#060e1e}
+#app{width:100%;height:100vh;display:flex;flex-direction:column;position:relative;background:#060e1e}
 
 /* ── Top bar ── */
-#topbar{display:flex;align-items:center;gap:6px;padding:5px 10px;background:rgba(8,12,22,0.96);border-bottom:1px solid rgba(255,255,255,0.06);z-index:30;flex-shrink:0;height:38px;overflow-x:auto}
+#topbar{display:flex;align-items:center;gap:6px;padding:5px 10px;background:rgba(8,12,22,0.96);border-bottom:1px solid rgba(255,255,255,0.06);z-index:30;flex-shrink:0;height:38px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+#topbar::-webkit-scrollbar{display:none}
 .tb-sep{width:1px;height:18px;background:rgba(255,255,255,0.08);flex-shrink:0}
 select{font-family:'DM Sans',system-ui,sans-serif;font-size:11px;padding:2px 6px;border:1px solid rgba(255,255,255,0.12);border-radius:6px;background:rgba(255,255,255,0.06);color:#c8daf0;cursor:pointer;outline:none}
 .tb-lbl{font-size:9px;color:rgba(255,255,255,0.3);text-transform:uppercase;letter-spacing:0.5px}
@@ -125,8 +134,29 @@ select{font-family:'DM Sans',system-ui,sans-serif;font-size:11px;padding:2px 6px
 #note{position:absolute;top:6px;left:12px;background:rgba(180,130,20,0.1);border:1px solid rgba(200,160,30,0.15);color:rgba(210,170,50,0.6);border-radius:5px;font-size:8px;padding:2px 7px;z-index:16;pointer-events:none}
 #api-status{position:absolute;top:26px;left:12px;font-size:8px;color:rgba(255,255,255,0.2);z-index:16;pointer-events:none}
 #rot-hint{position:absolute;bottom:80px;left:50%;transform:translateX(-50%);background:rgba(10,16,28,0.6);border-radius:5px;padding:2px 8px;font-size:8px;color:rgba(255,255,255,0.25);pointer-events:none;z-index:14}
+
+/* ── Mobile responsive ── */
+@media(max-width:600px){
+  #topbar{gap:4px;padding:4px 6px;height:34px}
+  .tb-btn{font-size:9px;padding:2px 6px}
+  .tb-sep{display:none}
+  .tb-lbl{display:none}
+  #search-wrap{flex:0 1 130px;min-width:80px}
+  #timeline-bar{min-width:240px;padding:5px 10px;bottom:30px}
+  #tl-label{display:none}
+  #coord-box{display:none}
+  #rot-hint{display:none}
+  #legend{padding:6px 8px;min-width:110px}
+  #leg-bar{width:90px}
+  #leg-labels{width:90px}
+  #info{max-width:260px;min-width:200px;max-height:50%}
+  #layer-panel{width:170px}
+  #zoom-ctrl{bottom:80px}
+  #zoom-ctrl button{width:28px;height:28px;font-size:14px}
+}
 </style>
 
+<h2 style="position:absolute;left:-9999px">Interactive PFAS and air quality global map with live OpenAQ data, animated wind and ocean currents, monitoring stations, CDC at-risk areas, timeline, and contaminant pathway tracing.</h2>
 <div id="app">
 <div id="topbar">
   <button class="tb-btn active" id="layers-btn" onclick="toggleLayerPanel()">
@@ -630,9 +660,12 @@ function drawAnimated(){
     });
   }
 
-  // Trace pathway particles
+  // Trace pathway particles on dedicated canvas
   if(traceActive&&traceSource){
+    tctx.fillStyle='rgba(6,14,30,0.12)';tctx.fillRect(0,0,tc.width,tc.height);
     drawTraceParticles(p);
+  } else if(!traceActive){
+    tctx.clearRect(0,0,tc.width,tc.height);
   }
 
   if(layers.pfas)drawFrame();
@@ -669,18 +702,18 @@ function drawTraceParticles(p){
     if(c){
       const fade=Math.sin(Math.min(pt.age/60,1)*Math.PI/2);
       const age01=pt.age/pt.maxAge;
-      wctx.beginPath();wctx.arc(c[0],c[1],1.5-age01*0.8,0,Math.PI*2);
-      wctx.fillStyle=`rgba(255,160,40,${0.7*fade*(1-age01*0.5)})`;wctx.fill();
+      tctx.beginPath();tctx.arc(c[0],c[1],1.5-age01*0.8,0,Math.PI*2);
+      tctx.fillStyle=`rgba(255,160,40,${0.7*fade*(1-age01*0.5)})`;tctx.fill();
     }
   });
   // Source marker
   const src=p([traceSource.lon,traceSource.lat]);
   if(src){
     const pr=8+Math.sin(pulseT*0.06)*3;
-    wctx.beginPath();wctx.arc(src[0],src[1],pr,0,Math.PI*2);
-    wctx.strokeStyle='rgba(255,160,40,0.4)';wctx.lineWidth=2;wctx.stroke();
-    wctx.beginPath();wctx.arc(src[0],src[1],4,0,Math.PI*2);
-    wctx.fillStyle='rgba(255,160,40,0.9)';wctx.fill();
+    tctx.beginPath();tctx.arc(src[0],src[1],pr,0,Math.PI*2);
+    tctx.strokeStyle='rgba(255,160,40,0.4)';tctx.lineWidth=2;tctx.stroke();
+    tctx.beginPath();tctx.arc(src[0],src[1],4,0,Math.PI*2);
+    tctx.fillStyle='rgba(255,160,40,0.9)';tctx.fill();
   }
 }
 
@@ -762,7 +795,7 @@ function showInfo(lat,lon,stationOverride,aqStation){
 
   let html='';
   html+=`<div class="info-metric"><div class="im-icon" style="background:rgba(220,100,30,0.15);color:#e8943a">☢</div><div class="im-data"><div class="im-label">PFAS Index</div><div class="im-value">${badge(pfasIdx)} <span style="font-family:'JetBrains Mono',monospace;font-size:10px;opacity:0.6">${pfasIdx}</span></div></div></div>`;
-  html+=`<div class="info-metric"><div class="im-icon" style="background:rgba(80,160,220,0.12);color:#5aa8dc">◉</div><div class="im-data"><div class="im-label">PM2.5</div><div class="im-value">${pm25} <span style="font-size:9px;opacity:0.4">μg/m³</span>${aq?' <span style="color:#4fc8e8;font-size:7px;background:rgba(80,200,232,0.1);padding:1px 4px;border-radius:3px">LIVE</span>':''}</div></div></div>`;
+  html+=`<div class="info-metric"><div class="im-icon" style="background:rgba(80,160,220,0.12);color:#5aa8dc">◉</div><div class="im-data"><div class="im-label">PM2.5</div><div class="im-value">${pm25} <span style="font-size:9px;opacity:0.4">μg/m³</span>${aq?(timelineYear<2025?' <span style="color:#f0b040;font-size:7px;background:rgba(240,180,60,0.1);padding:1px 4px;border-radius:3px">LIVE 2025</span>':' <span style="color:#4fc8e8;font-size:7px;background:rgba(80,200,232,0.1);padding:1px 4px;border-radius:3px">LIVE</span>'):''}</div></div></div>`;
   html+=`<div class="info-metric"><div class="im-icon" style="background:rgba(100,70,210,0.12);color:#9080d8">◈</div><div class="im-data"><div class="im-label">Air Quality Index</div><div class="im-value">${aqiBadge(aqi)}</div></div></div>`;
   if(spot.src)html+=`<div class="info-metric"><div class="im-icon" style="background:rgba(255,255,255,0.03);color:rgba(255,255,255,0.3);font-size:10px">⊡</div><div class="im-data"><div class="im-label">Source</div><div class="im-value" style="font-size:9px;opacity:0.6">${spot.src}</div></div></div>`;
 
@@ -872,3 +905,5 @@ initParticles();updateLegend();
 window.addEventListener('resize',resize);resize();
 requestAnimationFrame(drawAnimated);fetchOpenAQ();
 </script>
+</body>
+</html>
