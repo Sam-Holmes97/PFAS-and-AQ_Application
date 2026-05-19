@@ -28,7 +28,8 @@ select{font-family:'DM Sans',system-ui,sans-serif;font-size:11px;padding:2px 6px
 @keyframes trace-glow{0%,100%{box-shadow:0 0 4px rgba(255,140,0,0.2)}50%{box-shadow:0 0 10px rgba(255,140,0,0.4)}}
 
 /* ── Export dropdown ── */
-#export-menu{position:absolute;top:100%;right:0;margin-top:4px;background:rgba(12,18,30,0.97);border:1px solid rgba(255,255,255,0.1);border-radius:8px;min-width:180px;display:none;z-index:50;backdrop-filter:blur(12px);overflow:hidden;box-shadow:0 6px 24px rgba(0,0,0,0.4)}
+#export-wrap{position:relative;z-index:60}
+#export-menu{position:absolute;top:100%;right:0;margin-top:4px;background:rgba(12,18,30,0.97);border:1px solid rgba(255,255,255,0.1);border-radius:8px;min-width:180px;display:none;z-index:60;backdrop-filter:blur(12px);overflow:hidden;box-shadow:0 6px 24px rgba(0,0,0,0.4)}
 #export-menu.open{display:block}
 .em-item{padding:8px 12px;font-size:11px;color:#b8c8d8;cursor:pointer;display:flex;align-items:center;gap:8px;border-bottom:1px solid rgba(255,255,255,0.04);transition:background 0.1s}
 .em-item:hover{background:rgba(60,120,200,0.15);color:#e0ecf8}
@@ -721,7 +722,7 @@ function drawAnimated(){
 
   // Trace pathway particles on dedicated canvas
   if(traceActive&&traceSource){
-    tctx.fillStyle='rgba(6,14,30,0.12)';tctx.fillRect(0,0,tc.width,tc.height);
+    tctx.clearRect(0,0,tc.width,tc.height);
     drawTraceParticles(p);
   } else if(!traceActive){
     tctx.clearRect(0,0,tc.width,tc.height);
