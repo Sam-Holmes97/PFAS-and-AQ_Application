@@ -64,13 +64,31 @@ select{font-family:'DM Sans',system-ui,sans-serif;font-size:11px;padding:2px 6px
 #tc{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none}
 
 /* ── Timeline bar ── */
-#timeline-bar{position:absolute;bottom:40px;left:50%;transform:translateX(-50%);background:rgba(10,16,28,0.9);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.06);border-radius:10px;padding:6px 14px;display:flex;align-items:center;gap:8px;z-index:16;min-width:320px}
+#timeline-bar{position:absolute;bottom:40px;left:50%;transform:translateX(-50%);background:rgba(10,16,28,0.9);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.06);border-radius:10px;padding:6px 14px;display:flex;align-items:center;gap:8px;z-index:16;min-width:320px;transition:all 0.3s}
+#timeline-bar.historical{border-color:rgba(200,160,60,0.3);background:rgba(18,14,8,0.92)}
 #tl-play{width:26px;height:26px;border:1px solid rgba(255,255,255,0.15);border-radius:50%;background:rgba(255,255,255,0.05);color:#c0d0e0;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:11px}
 #tl-play:hover{background:rgba(255,255,255,0.12)}
 #tl-slider{flex:1;-webkit-appearance:none;appearance:none;height:4px;border-radius:2px;background:rgba(255,255,255,0.1);outline:none;cursor:pointer}
-#tl-slider::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:#7ec0f0;border:2px solid rgba(10,16,28,0.9);cursor:pointer}
-#tl-year{font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:500;color:#c8daf0;min-width:36px;text-align:center}
+#tl-slider::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:#7ec0f0;border:2px solid rgba(10,16,28,0.9);cursor:pointer;transition:background 0.3s}
+.historical #tl-slider::-webkit-slider-thumb{background:#d4a840}
+#tl-year{font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:500;color:#c8daf0;min-width:36px;text-align:center;transition:color 0.3s}
+.historical #tl-year{color:#d4a840}
 #tl-label{font-size:9px;color:rgba(255,255,255,0.3)}
+
+/* ── Data mode indicator ── */
+#mode-indicator{position:absolute;top:42px;left:50%;transform:translateX(-50%);z-index:18;padding:3px 14px;border-radius:6px;font-size:10px;font-weight:500;letter-spacing:0.4px;pointer-events:none;transition:all 0.3s;opacity:0}
+#mode-indicator.live{background:rgba(40,140,80,0.2);border:1px solid rgba(60,180,100,0.25);color:#70d8a0;opacity:1}
+#mode-indicator.historical{background:rgba(200,150,40,0.15);border:1px solid rgba(200,160,60,0.3);color:#d4a840;opacity:1}
+
+/* ── Historical overlay tint ── */
+#hist-overlay{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:1;transition:opacity 0.4s;opacity:0;background:radial-gradient(ellipse at center,rgba(180,140,40,0.04) 0%,rgba(120,80,20,0.08) 100%)}
+#hist-overlay.active{opacity:1}
+
+/* ── Source badge (info panel) ── */
+.src-badge{display:inline-block;padding:1px 5px;border-radius:3px;font-size:7px;font-weight:500;letter-spacing:0.2px;margin-left:4px;vertical-align:middle}
+.src-badge.modeled{background:rgba(200,160,60,0.12);color:#c8a030;border:1px solid rgba(200,160,60,0.2)}
+.src-badge.live{background:rgba(80,200,232,0.1);color:#4fc8e8;border:1px solid rgba(80,200,232,0.15)}
+.src-badge.static{background:rgba(255,255,255,0.05);color:rgba(255,255,255,0.35);border:1px solid rgba(255,255,255,0.08)}
 
 /* ── Info panel ── */
 #info{position:absolute;bottom:12px;right:12px;background:rgba(10,16,28,0.88);backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,0.08);border-radius:14px;padding:0;min-width:240px;max-width:300px;font-size:11px;color:#b0bcc8;z-index:17;display:none;max-height:55%;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,0.4)}
@@ -147,6 +165,7 @@ select{font-family:'DM Sans',system-ui,sans-serif;font-size:11px;padding:2px 6px
   #tl-label{display:none}
   #coord-box{display:none}
   #rot-hint{display:none}
+  #mode-indicator{font-size:8px;padding:2px 10px;top:38px}
   #legend{padding:6px 8px;min-width:110px}
   #leg-bar{width:90px}
   #leg-labels{width:90px}
@@ -223,6 +242,8 @@ select{font-family:'DM Sans',system-ui,sans-serif;font-size:11px;padding:2px 6px
   <canvas id="tc"></canvas>
   <div id="note">Data: modeled estimates · live OpenAQ · CDC/ATSDR</div>
   <div id="api-status">OpenAQ: loading…</div>
+  <div id="mode-indicator" class="live">● LIVE DATA · 2025</div>
+  <div id="hist-overlay"></div>
   <div id="coord-box">
     <span>LAT</span><input id="ilat" type="number" placeholder="0.00" step="0.1">
     <span>LON</span><input id="ilon" type="number" placeholder="0.00" step="0.1">
@@ -621,6 +642,13 @@ function drawFrame(){
   if(selPt){const pt=p([selPt.lon,selPt.lat]);if(pt){ctx.beginPath();ctx.arc(pt[0],pt[1],9,0,Math.PI*2);ctx.strokeStyle='rgba(120,200,248,0.45)';ctx.lineWidth=1.3;ctx.stroke();ctx.beginPath();ctx.arc(pt[0],pt[1],2.5,0,Math.PI*2);ctx.fillStyle='#7ec8f8';ctx.fill();}}
 
   ctx.beginPath();path({type:'Sphere'});ctx.strokeStyle='rgba(50,100,170,0.18)';ctx.lineWidth=1;ctx.stroke();
+
+  // Historical mode: subtle amber tint over the globe
+  if(timelineYear<2025){
+    ctx.beginPath();path({type:'Sphere'});
+    ctx.fillStyle=`rgba(160,120,40,${0.03+0.02*((2025-timelineYear)/25)})`;ctx.fill();
+  }
+
   drawInset();
 }
 
@@ -764,7 +792,24 @@ function locateMe(){
 }
 
 /* ── Timeline ── */
-function setTimelineYear(y){timelineYear=parseInt(y);document.getElementById('tl-year').textContent=y;drawFrame();}
+function setTimelineYear(y){
+  timelineYear=parseInt(y);
+  document.getElementById('tl-year').textContent=y;
+  const isLive=timelineYear>=2025;
+  const mi=document.getElementById('mode-indicator');
+  const tbar=document.getElementById('timeline-bar');
+  const overlay=document.getElementById('hist-overlay');
+  if(isLive){
+    mi.className='live';mi.innerHTML='● LIVE DATA · 2025';
+    tbar.classList.remove('historical');
+    overlay.classList.remove('active');
+  } else {
+    mi.className='historical';mi.innerHTML='◷ HISTORICAL MODEL · '+y;
+    tbar.classList.add('historical');
+    overlay.classList.add('active');
+  }
+  drawFrame();
+}
 function toggleTimeline(){
   if(timelinePlaying){clearInterval(timelineInterval);timelinePlaying=false;document.getElementById('tl-play').textContent='▶';return;}
   timelinePlaying=true;document.getElementById('tl-play').textContent='⏸';
@@ -795,10 +840,15 @@ function showInfo(lat,lon,stationOverride,aqStation){
   document.querySelector('#info-header .ih-name').innerHTML=`${spot.name}${spot.est?' <span style="opacity:0.3;font-size:10px;font-weight:400">(est.)</span>':''}`;
   document.querySelector('#info-header .ih-coords').textContent=`${lat}°, ${lon}° · ${timelineYear}`;
 
+  const isLive=timelineYear>=2025;
+  const modelBadge=isLive?'':'<span class="src-badge modeled">Model '+timelineYear+'</span>';
+  const liveBadge='<span class="src-badge live">Live</span>';
+  const staticBadge='<span class="src-badge static">Reference</span>';
+
   let html='';
-  html+=`<div class="info-metric"><div class="im-icon" style="background:rgba(220,100,30,0.15);color:#e8943a">☢</div><div class="im-data"><div class="im-label">PFAS Index</div><div class="im-value">${badge(pfasIdx)} <span style="font-family:'JetBrains Mono',monospace;font-size:10px;opacity:0.6">${pfasIdx}</span></div></div></div>`;
-  html+=`<div class="info-metric"><div class="im-icon" style="background:rgba(80,160,220,0.12);color:#5aa8dc">◉</div><div class="im-data"><div class="im-label">PM2.5</div><div class="im-value">${pm25} <span style="font-size:9px;opacity:0.4">μg/m³</span>${aq?(timelineYear<2025?' <span style="color:#f0b040;font-size:7px;background:rgba(240,180,60,0.1);padding:1px 4px;border-radius:3px">LIVE 2025</span>':' <span style="color:#4fc8e8;font-size:7px;background:rgba(80,200,232,0.1);padding:1px 4px;border-radius:3px">LIVE</span>'):''}</div></div></div>`;
-  html+=`<div class="info-metric"><div class="im-icon" style="background:rgba(100,70,210,0.12);color:#9080d8">◈</div><div class="im-data"><div class="im-label">Air Quality Index</div><div class="im-value">${aqiBadge(aqi)}</div></div></div>`;
+  html+=`<div class="info-metric"><div class="im-icon" style="background:rgba(220,100,30,0.15);color:#e8943a">☢</div><div class="im-data"><div class="im-label">PFAS Index ${modelBadge}</div><div class="im-value">${badge(pfasIdx)} <span style="font-family:'JetBrains Mono',monospace;font-size:10px;opacity:0.6">${pfasIdx}</span></div></div></div>`;
+  html+=`<div class="info-metric"><div class="im-icon" style="background:rgba(80,160,220,0.12);color:#5aa8dc">◉</div><div class="im-data"><div class="im-label">PM2.5 ${aq?liveBadge:modelBadge}</div><div class="im-value">${pm25} <span style="font-size:9px;opacity:0.4">μg/m³</span></div></div></div>`;
+  html+=`<div class="info-metric"><div class="im-icon" style="background:rgba(100,70,210,0.12);color:#9080d8">◈</div><div class="im-data"><div class="im-label">Air Quality Index ${aq?liveBadge:modelBadge}</div><div class="im-value">${aqiBadge(aqi)}</div></div></div>`;
   if(spot.src)html+=`<div class="info-metric"><div class="im-icon" style="background:rgba(255,255,255,0.03);color:rgba(255,255,255,0.3);font-size:10px">⊡</div><div class="im-data"><div class="im-label">Source</div><div class="im-value" style="font-size:9px;opacity:0.6">${spot.src}</div></div></div>`;
 
   if(riskArea){
