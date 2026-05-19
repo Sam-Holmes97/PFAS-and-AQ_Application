@@ -852,22 +852,58 @@ function toggleTimeline(){
 }
 
 /* ── Lookups ── */
-function nearest(lat,lon){let b=null,bd=999;pfasHotspots.forEach(h=>{const d=Math.sqrt((h.lat-lat)**2+(h.lon-lon)**2);if(d<bd){bd=d;b=h;}});return bd<15?{...b,est:bd>3}:{lat,lon,lv:.05+Math.random()*.15,name:'Remote / background',src:'Estimated',est:true};}
+function nearest(lat,lon){let b=null,bd=999;pfasHotspots.forEach(h=>{const d=Math.sqrt((h.lat-lat)**2+(h.lon-lon)**2);if(d<bd){bd=d;b=h;}});return bd<15?{...b,est:bd>3}:null;}
 function nearestStation(lat,lon){let b=null,bd=999;pfasMonStations.forEach(s=>{const d=Math.sqrt((s.lat-lat)**2+(s.lon-lon)**2);if(d<bd){bd=d;b=s;}});return bd<8?b:null;}
 function nearestOpenAQ(lat,lon){let b=null,bd=999;openAQStations.forEach(s=>{const d=Math.sqrt((s.lat-lat)**2+(s.lon-lon)**2);if(d<bd){bd=d;b=s;}});return bd<3?b:null;}
 function nearestRiskArea(lat,lon){let b=null,bd=999;cdcRiskAreas.forEach(a=>{const d=Math.sqrt((a.lat-lat)**2+(a.lon-lon)**2);if(d<bd){bd=d;b=a;}});return bd<5?b:null;}
 
+// Reverse geocoding cache
+const geoCache={};
+async function reverseGeocode(lat,lon){
+  const key=Math.round(lat*100)+','+Math.round(lon*100);
+  if(geoCache[key])return geoCache[key];
+  // Check majorCities first for fast local match
+  let best=null,bd=999;
+  majorCities.forEach(c=>{const d=Math.sqrt((c.lat-lat)**2+(c.lon-lon)**2);if(d<bd){bd=d;best=c;}});
+  if(bd<1.5){geoCache[key]=best.name;return best.name;}
+  // Try BigDataCloud free reverse geocoding
+  try{
+    const r=await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=en`);
+    if(r.ok){
+      const d=await r.json();
+      const city=d.city||d.locality||d.principalSubdivision||'';
+      const country=d.countryName||'';
+      const name=city&&country?`${city}, ${country}`:country||city||'Open Ocean';
+      geoCache[key]=name;return name;
+    }
+  }catch(e){}
+  // Fallback: nearest major city with distance
+  if(best)geoCache[key]=`Near ${best.name}`;
+  else geoCache[key]=Math.abs(lat)>60?'Polar Region':Math.abs(lat)<25?'Tropical Region':'Open Area';
+  return geoCache[key];
+}
+
 /* ── Info panel ── */
-function showInfo(lat,lon,stationOverride,aqStation){
+async function showInfo(lat,lon,stationOverride,aqStation){
   lat=Math.round(lat*1000)/1000;lon=Math.round(lon*1000)/1000;selPt={lat,lon};
   const spot=nearest(lat,lon);const st=stationOverride||nearestStation(lat,lon);
   const aq=aqStation||nearestOpenAQ(lat,lon);const riskArea=nearestRiskArea(lat,lon);
-  const scaledLv=yearScale(spot.lv,timelineYear);
+
+  // Determine location name
+  let locName,locSrc,baseLv;
+  if(spot){
+    locName=spot.name;locSrc=spot.src;baseLv=spot.lv;
+  } else {
+    locName=await reverseGeocode(lat,lon);
+    locSrc='Estimated';baseLv=.05+Math.random()*.15;
+  }
+  const isEst=!spot||spot.est;
+  const scaledLv=yearScale(baseLv,timelineYear);
   const pm25=aq?Math.round(aq.pm25*10)/10:Math.round(2+scaledLv*62);
   const aqi=aq?Math.round(aq.aqi):Math.round(12+scaledLv*275);
   const pfasIdx=Math.round(scaledLv*100)/100;
 
-  document.querySelector('#info-header .ih-name').innerHTML=`${spot.name}${spot.est?' <span style="opacity:0.3;font-size:10px;font-weight:400">(est.)</span>':''}`;
+  document.querySelector('#info-header .ih-name').innerHTML=`${locName}${isEst?' <span style="opacity:0.3;font-size:10px;font-weight:400">(est.)</span>':''}`;
   document.querySelector('#info-header .ih-coords').textContent=`${lat}°, ${lon}° · ${timelineYear}`;
 
   const isLive=timelineYear>=2025;
@@ -879,7 +915,7 @@ function showInfo(lat,lon,stationOverride,aqStation){
   html+=`<div class="info-metric"><div class="im-icon" style="background:rgba(220,100,30,0.15);color:#e8943a">☢</div><div class="im-data"><div class="im-label">PFAS Index ${modelBadge}</div><div class="im-value">${badge(pfasIdx)} <span style="font-family:'JetBrains Mono',monospace;font-size:10px;opacity:0.6">${pfasIdx}</span></div></div></div>`;
   html+=`<div class="info-metric"><div class="im-icon" style="background:rgba(80,160,220,0.12);color:#5aa8dc">◉</div><div class="im-data"><div class="im-label">PM2.5 ${aq?liveBadge:modelBadge}</div><div class="im-value">${pm25} <span style="font-size:9px;opacity:0.4">μg/m³</span></div></div></div>`;
   html+=`<div class="info-metric"><div class="im-icon" style="background:rgba(100,70,210,0.12);color:#9080d8">◈</div><div class="im-data"><div class="im-label">Air Quality Index ${aq?liveBadge:modelBadge}</div><div class="im-value">${aqiBadge(aqi)}</div></div></div>`;
-  if(spot.src)html+=`<div class="info-metric"><div class="im-icon" style="background:rgba(255,255,255,0.03);color:rgba(255,255,255,0.3);font-size:10px">⊡</div><div class="im-data"><div class="im-label">Source</div><div class="im-value" style="font-size:9px;opacity:0.6">${spot.src}</div></div></div>`;
+  if(locSrc)html+=`<div class="info-metric"><div class="im-icon" style="background:rgba(255,255,255,0.03);color:rgba(255,255,255,0.3);font-size:10px">⊡</div><div class="im-data"><div class="im-label">Source</div><div class="im-value" style="font-size:9px;opacity:0.6">${locSrc}</div></div></div>`;
 
   if(riskArea){
     html+=`<div class="info-section"><div class="is-title" style="color:#e87070"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> CDC/ATSDR At-Risk</div>`;
@@ -903,8 +939,8 @@ function showInfo(lat,lon,stationOverride,aqStation){
   html+=`</div>`;
 
   // Trace pathway button (only for significant hotspots)
-  if(spot.lv>=0.5 && !spot.est){
-    html+=`<button class="trace-btn" onclick="startTrace(${lat},${lon},'${spot.name.replace(/'/g,"\\'")}')">
+  if(spot&&baseLv>=0.5&&!isEst){
+    html+=`<button class="trace-btn" onclick="startTrace(${lat},${lon},'${locName.replace(/'/g,"\\'")}')">
       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2L11 13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
       Trace Wind Pathway from Here
     </button>`;
@@ -1023,11 +1059,15 @@ function exportJSON(){
   link.download='pfas-data-'+timelineYear+'.json';link.href=URL.createObjectURL(blob);link.click();URL.revokeObjectURL(link.href);
 }
 
-function exportLocationReport(){
+async function exportLocationReport(){
   if(!selPt){alert('Click a location on the map first to generate a report.');return;}
   const spot=nearest(selPt.lat,selPt.lon);const st=nearestStation(selPt.lat,selPt.lon);
   const aq=nearestOpenAQ(selPt.lat,selPt.lon);const riskArea=nearestRiskArea(selPt.lat,selPt.lon);
-  const scaledLv=yearScale(spot.lv,timelineYear);
+  let locName,locSrc,baseLv;
+  if(spot){locName=spot.name;locSrc=spot.src;baseLv=spot.lv;}
+  else{locName=await reverseGeocode(selPt.lat,selPt.lon);locSrc='Estimated';baseLv=.05+Math.random()*.15;}
+  const isEst=!spot||spot.est;
+  const scaledLv=yearScale(baseLv,timelineYear);
   const pm25=aq?Math.round(aq.pm25*10)/10:Math.round(2+scaledLv*62);
   const aqi=aq?Math.round(aq.aqi):Math.round(12+scaledLv*275);
   const pfasIdx=Math.round(scaledLv*100)/100;
@@ -1035,7 +1075,7 @@ function exportLocationReport(){
   const riskLabel=pfasIdx<.25?'Low':pfasIdx<.45?'Moderate':pfasIdx<.6?'Elevated':pfasIdx<.75?'High':'Critical';
   const aqiLabel=aqi<50?'Good':aqi<100?'Moderate':aqi<150?'USG':aqi<200?'Unhealthy':aqi<300?'Very Unhealthy':'Hazardous';
 
-  const html=`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>PFAS Location Report — ${spot.name}</title>
+  const rhtml=`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>PFAS Location Report — ${locName}</title>
 <style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:system-ui,-apple-system,sans-serif;max-width:700px;margin:40px auto;padding:20px;color:#1a1a1a;line-height:1.5}
 .header{border-bottom:3px solid #1a3a5c;padding-bottom:12px;margin-bottom:20px}.header h1{font-size:18px;color:#1a3a5c}.header p{font-size:11px;color:#666;margin-top:4px}
 .section{margin-bottom:18px;padding:14px;background:#f8f9fa;border-radius:8px;border-left:4px solid #1a3a5c}
@@ -1051,9 +1091,9 @@ table{width:100%;border-collapse:collapse;font-size:11px;margin-top:6px}td,th{pa
 <div class="header"><h1>PFAS Location Assessment Report</h1><p>PFAS Global Monitor · Sam Holmes · Generated ${new Date().toLocaleDateString()} · Timeline: ${timelineYear}</p></div>
 
 <div class="section"><h2>Location</h2>
-<table><tr><th>Site</th><td><strong>${spot.name}</strong>${spot.est?' (estimated)':''}</td></tr>
+<table><tr><th>Site</th><td><strong>${locName}</strong>${isEst?' (estimated)':''}</td></tr>
 <tr><th>Coordinates</th><td>${selPt.lat}°, ${selPt.lon}°</td></tr>
-<tr><th>Data Source</th><td>${spot.src||'Modeled estimate'}</td></tr>
+<tr><th>Data Source</th><td>${locSrc||'Modeled estimate'}</td></tr>
 ${riskArea?`<tr><th>CDC/ATSDR Status</th><td style="color:#cc3333"><strong>${riskArea.risk} Risk</strong> — ${riskArea.name}</td></tr>`:''}
 </table></div>
 
@@ -1081,8 +1121,8 @@ ${advice.items.map(item=>`<div class="advice ${advice.isWarn?'warn':'safe'}">${i
 <div class="footer">PFAS Global Monitor · Sam Holmes · Data: EPA ATSDR, CDC, OpenAQ, DoD AFFF Inventory, EMEP, state agencies · PFAS indices are modeled estimates · PM2.5/AQI from OpenAQ where available · Report generated for coordinates ${selPt.lat}°, ${selPt.lon}° at timeline year ${timelineYear}</div>
 </body></html>`;
 
-  const blob=new Blob([html],{type:'text/html'});const link=document.createElement('a');
-  link.download='pfas-report-'+spot.name.replace(/[^a-zA-Z0-9]/g,'-').substring(0,30)+'.html';
+  const blob=new Blob([rhtml],{type:'text/html'});const link=document.createElement('a');
+  link.download='pfas-report-'+locName.replace(/[^a-zA-Z0-9]/g,'-').substring(0,30)+'.html';
   link.href=URL.createObjectURL(blob);link.click();URL.revokeObjectURL(link.href);
 }
 
