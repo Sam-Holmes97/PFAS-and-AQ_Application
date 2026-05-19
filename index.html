@@ -840,7 +840,7 @@ function showInfo(lat,lon,stationOverride,aqStation){
 /* ── OpenAQ ── */
 const OPENAQ_URL='https://api.openaq.org/v3/locations?limit=100&parameters_id=2&order_by=lastUpdated&sort_order=desc';
 // Register free at https://explore.openaq.org for an API key, then paste here:
-const OPENAQ_KEY='';
+const OPENAQ_KEY='2167828495e25cd6c4b98081cab06e2bc349e7a10a299e5cafef9a626397a79e';
 function parseOpenAQ(d){
   openAQStations=[];
   (d.results||[]).forEach(loc=>{if(!loc.coordinates)return;const pm=loc.sensors?.find(s=>s.parameter?.name==='pm25'||s.parameter?.name==='PM2.5');
