@@ -1,85 +1,197 @@
 
 <style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&family=JetBrains+Mono:wght@400;500&display=swap');
+
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Segoe UI',system-ui,sans-serif;background:transparent;overflow:hidden}
-#app{width:100%;height:680px;display:flex;flex-direction:column;position:relative}
-#toolbar{display:flex;align-items:center;gap:6px;padding:8px 10px;background:rgba(10,14,20,0.94);border-bottom:1px solid rgba(255,255,255,0.08);flex-wrap:wrap;z-index:20;flex-shrink:0}
-.tg{display:flex;align-items:center;gap:4px;padding-right:8px;border-right:1px solid rgba(255,255,255,0.1)}
-.tg:last-child{border-right:none}
-.tlbl{font-size:10px;color:rgba(255,255,255,0.45);margin-right:2px;white-space:nowrap}
-select{font-size:11px;padding:2px 5px;border:1px solid rgba(255,255,255,0.2);border-radius:5px;background:rgba(255,255,255,0.08);color:#e8e6e0;cursor:pointer}
-.lb{font-size:10px;padding:2px 8px;border:1px solid rgba(255,255,255,0.18);border-radius:10px;background:transparent;color:rgba(255,255,255,0.5);cursor:pointer;white-space:nowrap;transition:all 0.15s}
-.lb.on{background:rgba(56,140,220,0.28);color:#7ec8f8;border-color:rgba(56,140,220,0.5)}
-.lb.risk-on{background:rgba(220,60,60,0.25);color:#f08080;border-color:rgba(220,60,60,0.45)}
-.cb{font-size:11px;padding:2px 7px;border:1px solid rgba(255,255,255,0.2);border-radius:5px;background:rgba(255,255,255,0.06);color:#e8e6e0;cursor:pointer;transition:all 0.15s}
-.cb:hover{background:rgba(255,255,255,0.12)}
+body{font-family:'DM Sans',system-ui,sans-serif;background:transparent;overflow:hidden}
+#app{width:100%;height:700px;display:flex;flex-direction:column;position:relative;background:#060e1e}
+
+/* ── Top bar ── */
+#topbar{display:flex;align-items:center;gap:8px;padding:6px 12px;background:rgba(8,12,22,0.96);border-bottom:1px solid rgba(255,255,255,0.06);z-index:30;flex-shrink:0;height:40px}
+#topbar .logo{font-size:13px;font-weight:600;color:#c8daf0;letter-spacing:0.3px;white-space:nowrap;display:flex;align-items:center;gap:6px}
+#topbar .logo svg{opacity:0.7}
+.tb-sep{width:1px;height:20px;background:rgba(255,255,255,0.08);flex-shrink:0}
+select{font-family:'DM Sans',system-ui,sans-serif;font-size:11px;padding:3px 8px;border:1px solid rgba(255,255,255,0.12);border-radius:6px;background:rgba(255,255,255,0.06);color:#c8daf0;cursor:pointer;outline:none;transition:border-color 0.15s}
+select:hover{border-color:rgba(255,255,255,0.25)}
+.tb-lbl{font-size:10px;color:rgba(255,255,255,0.35);text-transform:uppercase;letter-spacing:0.5px}
+
+/* ── Search bar ── */
+#search-wrap{position:relative;flex:0 1 240px;min-width:140px}
+#search-input{width:100%;font-family:'DM Sans',system-ui,sans-serif;font-size:11px;padding:5px 10px 5px 28px;border:1px solid rgba(255,255,255,0.1);border-radius:8px;background:rgba(255,255,255,0.05);color:#e0e8f0;outline:none;transition:all 0.2s}
+#search-input:focus{border-color:rgba(80,150,220,0.5);background:rgba(255,255,255,0.08)}
+#search-input::placeholder{color:rgba(255,255,255,0.25)}
+#search-icon{position:absolute;left:8px;top:50%;transform:translateY(-50%);pointer-events:none}
+#search-results{position:absolute;top:100%;left:0;right:0;margin-top:4px;background:rgba(12,18,30,0.97);border:1px solid rgba(255,255,255,0.1);border-radius:8px;max-height:200px;overflow-y:auto;display:none;z-index:50;backdrop-filter:blur(12px)}
+.sr-item{padding:7px 10px;font-size:11px;color:#b8c8d8;cursor:pointer;border-bottom:1px solid rgba(255,255,255,0.04);transition:background 0.1s}
+.sr-item:hover{background:rgba(60,120,200,0.15);color:#e0ecf8}
+.sr-item:last-child{border-bottom:none}
+.sr-sub{font-size:9px;color:rgba(255,255,255,0.3);margin-top:1px}
+
+/* ── Action buttons (top bar) ── */
+.tb-btn{font-family:'DM Sans',system-ui,sans-serif;font-size:10px;padding:4px 10px;border:1px solid rgba(255,255,255,0.1);border-radius:6px;background:rgba(255,255,255,0.04);color:rgba(255,255,255,0.55);cursor:pointer;transition:all 0.15s;white-space:nowrap;display:flex;align-items:center;gap:4px}
+.tb-btn:hover{background:rgba(255,255,255,0.1);color:#d0dce8}
+.tb-btn.active{background:rgba(56,130,210,0.2);color:#7ec0f0;border-color:rgba(56,130,210,0.4)}
+
+/* ── Layer panel (collapsible sidebar) ── */
+#layer-panel{position:absolute;top:0;left:0;width:200px;height:100%;background:rgba(8,12,22,0.95);border-right:1px solid rgba(255,255,255,0.06);z-index:25;transform:translateX(-100%);transition:transform 0.25s ease;overflow-y:auto;backdrop-filter:blur(10px)}
+#layer-panel.open{transform:translateX(0)}
+#lp-header{padding:12px 14px 8px;display:flex;align-items:center;justify-content:space-between}
+#lp-header span{font-size:12px;font-weight:600;color:#c8daf0}
+#lp-close{width:24px;height:24px;border:none;background:transparent;color:rgba(255,255,255,0.4);cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;border-radius:4px;transition:all 0.15s}
+#lp-close:hover{background:rgba(255,255,255,0.08);color:#e0e8f0}
+.lp-section{padding:6px 14px;margin-bottom:2px}
+.lp-section-title{font-size:9px;text-transform:uppercase;letter-spacing:0.8px;color:rgba(255,255,255,0.25);margin-bottom:8px;font-weight:500}
+.lp-toggle{display:flex;align-items:center;gap:8px;padding:5px 0;cursor:pointer;transition:opacity 0.15s}
+.lp-toggle:hover{opacity:1}
+.lp-check{width:16px;height:16px;border-radius:4px;border:1.5px solid rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;transition:all 0.15s;flex-shrink:0}
+.lp-check.on{border-color:rgba(80,160,240,0.6);background:rgba(80,160,240,0.2)}
+.lp-check.on::after{content:'✓';font-size:10px;color:#7ec0f0}
+.lp-check.risk-on{border-color:rgba(220,80,80,0.5);background:rgba(220,80,80,0.15)}
+.lp-check.risk-on::after{content:'✓';font-size:10px;color:#f08080}
+.lp-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.lp-label{font-size:11px;color:rgba(255,255,255,0.6);flex:1}
+.lp-toggle:hover .lp-label{color:rgba(255,255,255,0.85)}
+
+/* ── Map area ── */
 #map-wrap{flex:1;position:relative;overflow:hidden}
 #gc{position:absolute;top:0;left:0;width:100%;height:100%}
 #wc{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none}
-#note{position:absolute;top:8px;left:8px;background:rgba(180,130,20,0.18);border:1px solid rgba(200,160,30,0.35);color:#d4a830;border-radius:6px;font-size:10px;padding:3px 8px;z-index:8;pointer-events:none}
-#coord-box{position:absolute;top:8px;right:8px;background:rgba(10,14,20,0.88);border:1px solid rgba(255,255,255,0.15);border-radius:8px;padding:6px 8px;display:flex;gap:5px;align-items:center;z-index:8}
-#coord-box input{width:72px;font-size:11px;padding:2px 5px;border:1px solid rgba(255,255,255,0.2);border-radius:4px;background:rgba(255,255,255,0.07);color:#e8e6e0}
-#coord-box input::placeholder{color:rgba(255,255,255,0.3)}
-#coord-box span{font-size:10px;color:rgba(255,255,255,0.4)}
-#zoom-ctrl{position:absolute;bottom:60px;right:10px;display:flex;flex-direction:column;gap:3px;z-index:8}
-#zoom-ctrl button{width:28px;height:28px;border:1px solid rgba(255,255,255,0.2);border-radius:5px;background:rgba(10,14,20,0.88);color:#e8e6e0;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1}
-#legend-wrap{position:absolute;bottom:10px;left:10px;z-index:8}
-#legend{background:rgba(10,14,20,0.88);border:1px solid rgba(255,255,255,0.12);border-radius:8px;padding:8px 10px;font-size:10px;color:#bbb;min-width:155px}
-#leg-bar{height:10px;width:120px;border-radius:3px;margin:5px 0 2px;cursor:crosshair;position:relative}
-#leg-tip{position:absolute;bottom:28px;left:0;background:rgba(10,14,20,0.95);border:1px solid rgba(255,255,255,0.15);border-radius:5px;padding:3px 7px;font-size:10px;color:#e8e6e0;white-space:nowrap;display:none;pointer-events:none}
-#info{position:absolute;bottom:10px;right:10px;background:rgba(10,14,20,0.92);border:1px solid rgba(255,255,255,0.15);border-radius:10px;padding:10px 13px;min-width:220px;max-width:280px;font-size:11px;color:#bbb;z-index:8;display:none;max-height:55%;overflow-y:auto}
-.ir{display:flex;justify-content:space-between;gap:14px;margin-top:5px}
-.ik{color:rgba(255,255,255,0.45);font-size:10px}
-.iv{color:#e8e6e0;font-weight:500}
-.badge{display:inline-block;padding:1px 6px;border-radius:6px;font-size:10px;font-weight:500}
-.bg{background:rgba(40,120,40,0.3);color:#7ecf7e}
-.by{background:rgba(180,130,0,0.3);color:#e8c040}
-.bo{background:rgba(200,80,20,0.3);color:#f09060}
-.br{background:rgba(180,40,40,0.3);color:#f07070}
-.bp{background:rgba(80,60,180,0.3);color:#b0a0f8}
-.brisk{background:rgba(200,50,50,0.22);color:#e87070;border:1px solid rgba(200,50,50,0.35)}
-#rot-hint{position:absolute;bottom:10px;left:50%;transform:translateX(-50%);background:rgba(10,14,20,0.7);border-radius:5px;padding:3px 8px;font-size:10px;color:rgba(255,255,255,0.4);pointer-events:none;z-index:6}
-#api-status{position:absolute;top:36px;left:8px;font-size:10px;color:rgba(255,255,255,0.35);z-index:8;pointer-events:none}
+
+/* ── Info panel (glassmorphic redesign) ── */
+#info{position:absolute;bottom:12px;right:12px;background:rgba(10,16,28,0.88);backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,0.08);border-radius:14px;padding:0;min-width:240px;max-width:300px;font-size:11px;color:#b0bcc8;z-index:15;display:none;max-height:58%;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,0.4)}
+#info-header{padding:12px 14px 8px;border-bottom:1px solid rgba(255,255,255,0.06)}
+#info-header .ih-name{font-size:13px;font-weight:600;color:#e4ecf4;margin-bottom:2px}
+#info-header .ih-coords{font-family:'JetBrains Mono',monospace;font-size:10px;color:rgba(255,255,255,0.3)}
+#info-body{padding:8px 14px 12px;overflow-y:auto;max-height:calc(58vh - 80px)}
+.info-metric{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.04)}
+.info-metric:last-child{border-bottom:none}
+.im-icon{width:28px;height:28px;border-radius:7px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:13px}
+.im-data{flex:1;min-width:0}
+.im-label{font-size:9px;color:rgba(255,255,255,0.35);text-transform:uppercase;letter-spacing:0.3px}
+.im-value{font-size:12px;font-weight:500;color:#e0e8f0;margin-top:1px;display:flex;align-items:center;gap:5px}
+.info-section{margin-top:8px;padding-top:8px;border-top:1px solid rgba(255,255,255,0.06)}
+.is-title{font-size:10px;font-weight:600;margin-bottom:6px;display:flex;align-items:center;gap:5px}
+.is-row{display:flex;justify-content:space-between;gap:8px;margin-top:4px}
+.is-k{font-size:9px;color:rgba(255,255,255,0.35)}
+.is-v{font-size:10px;color:#c8d4e0;font-weight:500;text-align:right;max-width:160px}
+.info-footer{padding:6px 14px 8px;font-size:8px;color:rgba(255,255,255,0.18);border-top:1px solid rgba(255,255,255,0.04)}
+#info-close{position:absolute;top:8px;right:10px;width:20px;height:20px;border:none;background:rgba(255,255,255,0.06);color:rgba(255,255,255,0.4);cursor:pointer;border-radius:4px;font-size:12px;display:flex;align-items:center;justify-content:center;transition:all 0.15s}
+#info-close:hover{background:rgba(255,255,255,0.12);color:#e0e8f0}
+
+/* ── Badges ── */
+.badge{display:inline-block;padding:2px 7px;border-radius:6px;font-size:10px;font-weight:500;letter-spacing:0.1px}
+.bg{background:rgba(40,120,40,0.25);color:#7ecf7e}
+.by{background:rgba(180,130,0,0.25);color:#e8c040}
+.bo{background:rgba(200,80,20,0.25);color:#f09060}
+.br{background:rgba(180,40,40,0.25);color:#f07070}
+.bp{background:rgba(80,60,180,0.25);color:#b0a0f8}
+
+/* ── Zoom controls ── */
+#zoom-ctrl{position:absolute;bottom:60px;right:12px;display:flex;flex-direction:column;gap:2px;z-index:15}
+#zoom-ctrl button{width:32px;height:32px;border:1px solid rgba(255,255,255,0.08);border-radius:8px;background:rgba(10,16,28,0.85);backdrop-filter:blur(8px);color:#c0d0e0;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.15s}
+#zoom-ctrl button:hover{background:rgba(30,50,80,0.8);color:#e8f0f8}
+
+/* ── Legend ── */
+#legend-wrap{position:absolute;bottom:12px;left:12px;z-index:15}
+#legend{background:rgba(10,16,28,0.88);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,0.06);border-radius:12px;padding:10px 12px;font-size:10px;color:rgba(255,255,255,0.5);min-width:150px}
+#legend .leg-title{font-size:10px;font-weight:600;color:#c8daf0;margin-bottom:5px}
+#leg-bar{height:8px;width:120px;border-radius:4px;margin:5px 0 3px;cursor:crosshair;position:relative}
+#leg-tip{position:absolute;bottom:26px;left:0;background:rgba(10,16,28,0.95);border:1px solid rgba(255,255,255,0.1);border-radius:6px;padding:4px 8px;font-size:9px;color:#d0dce8;white-space:nowrap;display:none;pointer-events:none;backdrop-filter:blur(8px)}
+.leg-item{display:flex;align-items:center;gap:6px;margin-top:4px}
+
+/* ── Inset mini-map ── */
+#inset-wrap{position:absolute;bottom:12px;left:175px;z-index:14;display:none}
+#inset-map{width:100px;height:60px;border-radius:8px;border:1px solid rgba(255,255,255,0.08);background:rgba(6,14,30,0.9);overflow:hidden}
+
+/* ── Coord box ── */
+#coord-box{position:absolute;top:8px;right:12px;background:rgba(10,16,28,0.88);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:5px 8px;display:flex;gap:4px;align-items:center;z-index:15}
+#coord-box input{font-family:'JetBrains Mono',monospace;width:68px;font-size:10px;padding:3px 5px;border:1px solid rgba(255,255,255,0.1);border-radius:5px;background:rgba(255,255,255,0.05);color:#c8daf0;outline:none}
+#coord-box input:focus{border-color:rgba(80,150,220,0.4)}
+#coord-box input::placeholder{color:rgba(255,255,255,0.2)}
+#coord-box span{font-size:9px;color:rgba(255,255,255,0.3)}
+#coord-box button{font-family:'DM Sans',sans-serif}
+
+/* ── Status / Note ── */
+#note{position:absolute;top:8px;left:12px;background:rgba(180,130,20,0.12);border:1px solid rgba(200,160,30,0.2);color:rgba(210,170,50,0.7);border-radius:6px;font-size:9px;padding:3px 8px;z-index:15;pointer-events:none}
+#api-status{position:absolute;top:30px;left:12px;font-size:9px;color:rgba(255,255,255,0.25);z-index:15;pointer-events:none}
+#rot-hint{position:absolute;bottom:12px;left:50%;transform:translateX(-50%);background:rgba(10,16,28,0.7);border-radius:6px;padding:3px 10px;font-size:9px;color:rgba(255,255,255,0.3);pointer-events:none;z-index:14}
+
+/* ── Pulse animation for critical hotspots ── */
+@keyframes pulse-ring{
+  0%{opacity:0.6;transform:scale(1)}
+  100%{opacity:0;transform:scale(2.5)}
+}
 </style>
 
 <h2 style="position:absolute;left:-9999px">Interactive PFAS and air quality global map with live OpenAQ data, animated wind and ocean currents, monitoring station pins, CDC at-risk areas, and multi-projection support.</h2>
 
 <div id="app">
-<div id="toolbar">
-  <div class="tg">
-    <span class="tlbl">Projection</span>
-    <select id="proj" onchange="setProj(this.value)">
-      <option value="equirect">Equirectangular</option>
-      <option value="mercator">Mercator</option>
-      <option value="ortho">Orthographic</option>
-      <option value="patterson">Patterson</option>
-      <option value="stereo">Stereographic</option>
-    </select>
+<!-- Top bar -->
+<div id="topbar">
+  <button class="tb-btn active" id="layers-btn" onclick="toggleLayerPanel()">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+    Layers
+  </button>
+  <div class="tb-sep"></div>
+  <span class="tb-lbl">Projection</span>
+  <select id="proj" onchange="setProj(this.value)">
+    <option value="equirect">Equirectangular</option>
+    <option value="mercator">Mercator</option>
+    <option value="ortho" selected>Orthographic</option>
+    <option value="patterson">Patterson</option>
+    <option value="stereo">Stereographic</option>
+  </select>
+  <div class="tb-sep"></div>
+  <div id="search-wrap">
+    <svg id="search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    <input id="search-input" type="text" placeholder="Search location…" autocomplete="off">
+    <div id="search-results"></div>
   </div>
-  <div class="tg">
-    <span class="tlbl">Layers</span>
-    <button class="lb on" id="b-pfas" onclick="tog('pfas')">PFAS hotspots</button>
-    <button class="lb on" id="b-pm25" onclick="tog('pm25')">PM2.5</button>
-    <button class="lb" id="b-aqi" onclick="tog('aqi')">AQI overlay</button>
-    <button class="lb on" id="b-wind" onclick="tog('wind')">Wind</button>
-    <button class="lb" id="b-ocean" onclick="tog('ocean')">Ocean currents</button>
-    <button class="lb on" id="b-pins" onclick="tog('pins')">Monitor stations</button>
-    <button class="lb risk-on" id="b-risk" onclick="tog('risk')">CDC at-risk</button>
+  <div class="tb-sep"></div>
+  <button class="tb-btn" onclick="fetchOpenAQ()">
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+    Refresh
+  </button>
+  <button class="tb-btn" onclick="exportScreenshot()">
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+    Export
+  </button>
+</div>
+
+<!-- Collapsible layer panel -->
+<div id="layer-panel">
+  <div id="lp-header"><span>Map Layers</span><button id="lp-close" onclick="toggleLayerPanel()">✕</button></div>
+  <div class="lp-section">
+    <div class="lp-section-title">Pollutants</div>
+    <div class="lp-toggle" onclick="tog('pfas')"><div class="lp-check on" id="lc-pfas"></div><div class="lp-dot" style="background:rgba(200,100,30,0.8)"></div><span class="lp-label">PFAS hotspots</span></div>
+    <div class="lp-toggle" onclick="tog('pm25')"><div class="lp-check on" id="lc-pm25"></div><div class="lp-dot" style="background:rgba(180,130,0,0.7)"></div><span class="lp-label">PM2.5 regions</span></div>
+    <div class="lp-toggle" onclick="tog('aqi')"><div class="lp-check" id="lc-aqi"></div><div class="lp-dot" style="background:rgba(100,70,210,0.6)"></div><span class="lp-label">AQI overlay</span></div>
   </div>
-  <div class="tg">
-    <span class="tlbl">Live data</span>
-    <button class="cb" onclick="fetchOpenAQ()">Refresh OpenAQ</button>
+  <div class="lp-section">
+    <div class="lp-section-title">Atmospheric & Oceanic</div>
+    <div class="lp-toggle" onclick="tog('wind')"><div class="lp-check on" id="lc-wind"></div><div class="lp-dot" style="background:rgba(80,160,220,0.7)"></div><span class="lp-label">Wind currents</span></div>
+    <div class="lp-toggle" onclick="tog('ocean')"><div class="lp-check" id="lc-ocean"></div><div class="lp-dot" style="background:rgba(32,184,160,0.7)"></div><span class="lp-label">Ocean currents</span></div>
+  </div>
+  <div class="lp-section">
+    <div class="lp-section-title">Monitoring</div>
+    <div class="lp-toggle" onclick="tog('pins')"><div class="lp-check on" id="lc-pins"></div><div class="lp-dot" style="background:rgba(240,224,60,0.8)"></div><span class="lp-label">Monitor stations</span></div>
+  </div>
+  <div class="lp-section">
+    <div class="lp-section-title">Risk Assessment</div>
+    <div class="lp-toggle" onclick="tog('risk')"><div class="lp-check risk-on" id="lc-risk"></div><div class="lp-dot" style="background:rgba(220,60,60,0.7)"></div><span class="lp-label">CDC at-risk areas</span></div>
   </div>
 </div>
+
+<!-- Map -->
 <div id="map-wrap">
   <canvas id="gc"></canvas>
   <canvas id="wc"></canvas>
-  <div id="note">Data: modeled estimates + live OpenAQ sensors + CDC/ATSDR exposure data</div>
+  <div id="note">Data: modeled estimates · live OpenAQ · CDC/ATSDR exposure data</div>
   <div id="api-status">OpenAQ: loading…</div>
   <div id="coord-box">
-    <span>Lat</span><input id="ilat" type="number" placeholder="0.00" min="-90" max="90">
-    <span>Lon</span><input id="ilon" type="number" placeholder="0.00" min="-180" max="180">
-    <button class="cb" onclick="gotoCoords()">Go</button>
+    <span>LAT</span><input id="ilat" type="number" placeholder="0.00" min="-90" max="90" step="0.1">
+    <span>LON</span><input id="ilon" type="number" placeholder="0.00" min="-180" max="180" step="0.1">
+    <button class="tb-btn" onclick="gotoCoords()" style="padding:3px 8px">Go</button>
   </div>
   <div id="zoom-ctrl">
     <button onclick="zoom(1.3)">+</button>
@@ -87,21 +199,27 @@ select{font-size:11px;padding:2px 5px;border:1px solid rgba(255,255,255,0.2);bor
   </div>
   <div id="legend-wrap">
     <div id="legend">
-      <div style="font-size:10px;font-weight:500;color:#e8e6e0;margin-bottom:3px">Concentration level</div>
+      <div class="leg-title">Concentration Level</div>
       <div id="leg-bar"></div>
-      <div style="display:flex;justify-content:space-between;width:120px;color:rgba(255,255,255,0.4)"><span>Low</span><span>Critical</span></div>
+      <div style="display:flex;justify-content:space-between;width:120px;font-size:9px;color:rgba(255,255,255,0.3)"><span>Low</span><span>Critical</span></div>
       <div id="leg-tip"></div>
-      <div style="margin-top:7px;border-top:1px solid rgba(255,255,255,0.1);padding-top:6px">
-        <div style="display:flex;align-items:center;gap:5px;margin-top:3px"><div style="width:8px;height:8px;border-radius:50%;background:#4fc8e8;border:1px solid rgba(255,255,255,0.4)"></div><span>OpenAQ live sensor</span></div>
-        <div style="display:flex;align-items:center;gap:5px;margin-top:3px"><div style="width:8px;height:8px;border-radius:50%;background:#f0e050;border:1px solid rgba(255,255,255,0.4)"></div><span>PFAS monitoring site</span></div>
-        <div style="display:flex;align-items:center;gap:5px;margin-top:3px"><div style="width:10px;height:2px;background:#4090cc"></div><span>Wind</span></div>
-        <div style="display:flex;align-items:center;gap:5px;margin-top:3px"><div style="width:10px;height:2px;background:#20b8a0"></div><span>Ocean current</span></div>
-        <div style="display:flex;align-items:center;gap:5px;margin-top:3px"><div style="width:8px;height:8px;border-radius:2px;background:rgba(220,60,60,0.4);border:1px dashed rgba(220,60,60,0.7)"></div><span>CDC at-risk area</span></div>
+      <div style="margin-top:6px;border-top:1px solid rgba(255,255,255,0.06);padding-top:6px">
+        <div class="leg-item"><div style="width:7px;height:7px;border-radius:50%;background:#4fc8e8;border:1px solid rgba(255,255,255,0.3)"></div><span>OpenAQ sensor</span></div>
+        <div class="leg-item"><div style="width:7px;height:7px;border-radius:50%;background:#f0e050;border:1px solid rgba(255,255,255,0.3)"></div><span>PFAS monitor</span></div>
+        <div class="leg-item"><div style="width:9px;height:2px;background:#4090cc;border-radius:1px"></div><span>Wind</span></div>
+        <div class="leg-item"><div style="width:9px;height:2px;background:#20b8a0;border-radius:1px"></div><span>Ocean current</span></div>
+        <div class="leg-item"><div style="width:7px;height:7px;border-radius:2px;background:rgba(220,60,60,0.35);border:1px dashed rgba(220,60,60,0.6)"></div><span>CDC at-risk</span></div>
       </div>
     </div>
   </div>
-  <div id="info"></div>
-  <div id="rot-hint">Drag to rotate / pan the map</div>
+  <div id="inset-wrap"><canvas id="inset-map"></canvas></div>
+  <div id="info">
+    <button id="info-close" onclick="closeInfo()">✕</button>
+    <div id="info-header"><div class="ih-name"></div><div class="ih-coords"></div></div>
+    <div id="info-body"></div>
+    <div class="info-footer">PFAS indices modeled · PM2.5/AQI from OpenAQ where available</div>
+  </div>
+  <div id="rot-hint">Drag to rotate · Scroll to zoom</div>
 </div>
 </div>
 
@@ -111,17 +229,19 @@ select{font-size:11px;padding:2px 5px;border:1px solid rgba(255,255,255,0.2);bor
 const gc=document.getElementById('gc'),ctx=gc.getContext('2d');
 const wc=document.getElementById('wc'),wctx=wc.getContext('2d');
 const wrap=document.getElementById('map-wrap');
+const insetCanvas=document.getElementById('inset-map'),ictx=insetCanvas.getContext('2d');
 
-let world=null,proj='equirect',zoomK=1,rotLon=0,rotLat=0;
-let panX=0,panY=0; // pan offsets for flat projections
+let world=null,proj='ortho',zoomK=1,rotLon=0,rotLat=0;
+let panX=0,panY=0;
 let layers={pfas:true,pm25:true,aqi:false,wind:true,ocean:false,pins:true,risk:true};
-let selPt=null,windT=0,oceanT=0;
+let selPt=null,windT=0,oceanT=0,pulseT=0;
 let openAQStations=[];
 let dragging=false,dragStart=null,rotStart=[0,0],panStart=[0,0];
 let windParticles=[],oceanParticles=[];
-const NWIND=180,NOCEAN=120;
+const NWIND=200,NOCEAN=130;
+let layerPanelOpen=false;
 
-/* ── PFAS hotspots ── */
+/* ── Data arrays ── */
 const pfasHotspots=[
   {lat:40.7,lon:-74.0,lv:.85,name:"NY/NJ metro industrial",src:"EPA ATSDR"},
   {lat:33.4,lon:-112.0,lv:.72,name:"Luke AFB, Phoenix AZ",src:"EPA NATTS / AFFF sites"},
@@ -155,7 +275,6 @@ const pfasHotspots=[
   {lat:1.3,lon:103.8,lv:.55,name:"Singapore industrial",src:"NEA Singapore"},
 ];
 
-/* ── PFAS monitoring stations ── */
 const pfasMonStations=[
   {lat:39.75,lon:-104.87,name:"Denver, CO — EPA NATTS",agency:"US EPA National Air Toxics Trends Station",lastCollected:"Mar 2025",sensors:"PFOA, PFOS, PFHxA, PFHxS, PFNA — 24h integrated filter + SPE-LC-MS/MS; MDL ~0.01 pg/m³",freq:"Weekly integrated samples"},
   {lat:33.99,lon:-118.16,name:"Los Angeles, CA — EPA NATTS",agency:"US EPA / CARB",lastCollected:"Apr 2025",sensors:"14-compound PFAS panel; Hi-Vol sampler with GFF+PUF; LC-MS/MS; MDL 0.01–0.05 pg/m³",freq:"Every 6th day (federal schedule)"},
@@ -173,7 +292,6 @@ const pfasMonStations=[
   {lat:39.93,lon:116.40,name:"Beijing, China — CNEMC",agency:"China Nat. Env. Monitoring Centre",lastCollected:"Mar 2025",sensors:"PFOA, PFOS; active Hi-Vol; LC-MS/MS; pg/m³ range",freq:"Monthly"},
 ];
 
-/* ── Ocean currents ── */
 const oceanCurrents=[
   {pts:[[110,-40],[80,-35],[50,-25],[20,-15],[-10,-5],[-35,5],[-55,15],[-65,25]],name:"South Equatorial Current",col:"#1a9080"},
   {pts:[[-80,25],[-75,32],[-60,38],[-40,44],[-20,48],[0,51],[20,53]],name:"Gulf Stream / N. Atlantic Drift",col:"#20b8a0"},
@@ -183,7 +301,6 @@ const oceanCurrents=[
   {pts:[[-15,15],[-10,10],[-5,5],[0,-2],[5,-8],[10,-14],[14,-20]],name:"Canary / Benguela upwelling",col:"#1a9080"},
 ];
 
-/* ── PM2.5 regions ── */
 const pm25Regions=[
   {lat:35,lon:105,r:16,lv:.88,name:"N. China Plain"},
   {lat:28,lon:77,r:11,lv:.85,name:"Indo-Gangetic Plain"},
@@ -195,14 +312,7 @@ const pm25Regions=[
   {lat:-5,lon:-55,r:7,lv:.45,name:"Amazon (seasonal fires)"},
 ];
 
-/* ── CDC / ATSDR PFAS at-risk areas ── 
-   Sources: CDC ATSDR PFAS Exposure Assessments, EPA UCMR 3/5, 
-   DoD AFFF site inventories, state health dept. advisories.
-   These represent communities identified by CDC/ATSDR as having 
-   elevated PFAS exposure risks from contaminated water, air, 
-   or soil near industrial/military sources. */
 const cdcRiskAreas=[
-  // Major DoD / AFFF contamination zones (ATSDR exposure assessments)
   {lat:35.14,lon:-79.0,r:1.8,name:"Fort Liberty (Bragg), NC",src:"CDC ATSDR / DoD",risk:"High",detail:"AFFF firefighting foam contamination; groundwater & air exposure pathway; ATSDR health consultation ongoing"},
   {lat:34.28,lon:-77.87,r:2.2,name:"Fayetteville Works / Chemours, NC",src:"CDC ATSDR / NC DEQ",risk:"Critical",detail:"GenX & PFAS manufacturing discharge; Cape Fear River basin contamination; community exposure assessment"},
   {lat:44.93,lon:-93.21,r:2.0,name:"3M/Washington County, MN",src:"CDC ATSDR / MN DOH",risk:"Critical",detail:"3M Cottage Grove facility; decades of PFAS manufacturing waste; blood serum studies show elevated levels"},
@@ -213,23 +323,26 @@ const cdcRiskAreas=[
   {lat:30.33,lon:-81.66,r:1.8,name:"NAS Jacksonville, FL",src:"CDC ATSDR / US Navy",risk:"High",detail:"AFFF training area contamination; groundwater plume migration to residential wells"},
   {lat:43.08,lon:-76.15,r:1.5,name:"Hancock AFB / Syracuse, NY",src:"CDC ATSDR / DoD",risk:"High",detail:"Former AFFF use site; contaminated public water supply; state-listed cleanup site"},
   {lat:32.73,lon:-97.29,r:1.5,name:"NAS JRB Fort Worth, TX",src:"DoD / TCEQ",risk:"High",detail:"AFFF contamination of groundwater; off-base migration confirmed"},
-  // Major industrial / manufacturing exposure zones
   {lat:39.33,lon:-81.56,r:2.5,name:"Parkersburg / Vienna, WV",src:"CDC ATSDR / WV DEP",risk:"Critical",detail:"DuPont/Chemours Washington Works; C8 contamination; historic community health study (C8 Science Panel)"},
   {lat:33.95,lon:-83.36,r:1.2,name:"Athens / Clarke County, GA",src:"EPA / GA EPD",risk:"Elevated",detail:"PFAS detected in public water system above EPA health advisory levels"},
   {lat:42.97,lon:-78.73,r:1.5,name:"Niagara Falls / WNY, NY",src:"ATSDR / NYSDEC",risk:"High",detail:"Legacy industrial PFAS contamination; multiple Superfund-adjacent sites"},
   {lat:34.85,lon:-82.39,r:1.3,name:"Greenville, SC",src:"ATSDR / SC DHEC",risk:"Elevated",detail:"PFAS detected in drinking water; state health advisory; source investigation ongoing"},
   {lat:42.36,lon:-71.06,r:1.5,name:"Boston metro area, MA",src:"ATSDR / MassDEP",risk:"Elevated",detail:"Multiple PFAS detections in public water systems; state MCL enforcement"},
-  // International high-risk areas
   {lat:45.36,lon:11.76,r:3.0,name:"Veneto Region, Italy",src:"ISS Italy / ARPA Veneto",risk:"Critical",detail:"Miteni SPA contamination; one of Europe's largest PFAS contamination events; 350k+ residents exposed"},
   {lat:51.4,lon:6.8,r:2.0,name:"Ruhr Valley / NRW, Germany",src:"UBA / NRW LANUV",risk:"High",detail:"Industrial PFAS soil contamination; contaminated agricultural land; drinking water exposure"},
   {lat:-33.73,lon:151.56,r:2.0,name:"Williamtown, NSW, Australia",src:"NSW EPA / Aus DoD",risk:"High",detail:"RAAF Base Williamtown AFFF contamination; fishing & water use restrictions in effect"},
   {lat:56.67,lon:12.86,r:1.5,name:"Ronneby, Sweden",src:"Swedish EPA / MSB",risk:"High",detail:"Kallinge military airfield AFFF contamination; one of Europe's best-studied PFAS exposure events"},
-  // Water system contamination clusters (EPA UCMR 3/5 flagged)
   {lat:38.90,lon:-77.04,r:1.5,name:"DC metro water systems",src:"EPA UCMR5 / DC Water",risk:"Elevated",detail:"Multiple PFAS compounds detected above proposed MCLs in regional water systems"},
   {lat:35.78,lon:-78.64,r:1.8,name:"Raleigh-Durham, NC",src:"NC DEQ / EPA",risk:"Elevated",detail:"PFAS detected in multiple Triangle-area water systems; GenX downstream transport from Fayetteville Works"},
   {lat:26.12,lon:-80.14,r:1.5,name:"Fort Lauderdale / Broward, FL",src:"EPA UCMR5 / FL DEP",risk:"Elevated",detail:"Multiple water utilities reporting PFAS above health advisory; military base proximity"},
   {lat:47.25,lon:-122.44,r:1.5,name:"Tacoma / Joint Base Lewis-McChord, WA",src:"ATSDR / WA DOE",risk:"High",detail:"AFFF contamination from JBLM; drinking water wells impacted; state cleanup underway"},
 ];
+
+/* ── Searchable locations (all data points combined) ── */
+const searchIndex=[];
+pfasHotspots.forEach(h=>searchIndex.push({name:h.name,lat:h.lat,lon:h.lon,type:'PFAS hotspot'}));
+pfasMonStations.forEach(s=>searchIndex.push({name:s.name,lat:s.lat,lon:s.lon,type:'Monitor station'}));
+cdcRiskAreas.forEach(a=>searchIndex.push({name:a.name,lat:a.lat,lon:a.lon,type:'CDC at-risk'}));
 
 /* ── Projection ── */
 function getProj(w,h){
@@ -242,10 +355,9 @@ function getProj(w,h){
     default:return d3.geoEquirectangular().scale(sc*0.52).translate([cx,cy]);
   }
 }
+function isGlobeProj(){return proj==='ortho'||proj==='stereo';}
 
-function isGlobeProj(){ return proj==='ortho'||proj==='stereo'; }
-
-/* ── Color helpers ── */
+/* ── Colors ── */
 function col(lv,a=0.72){
   if(lv<.25)return`rgba(40,180,60,${a})`;
   if(lv<.45)return`rgba(200,160,20,${a})`;
@@ -263,7 +375,7 @@ function badge(lv){
 function aqiBadge(v){
   if(v<50)return'<span class="badge bg">Good '+v+'</span>';
   if(v<100)return'<span class="badge by">Moderate '+v+'</span>';
-  if(v<150)return'<span class="badge bo">Unhealthy (sensitive) '+v+'</span>';
+  if(v<150)return'<span class="badge bo">USG '+v+'</span>';
   if(v<200)return'<span class="badge br">Unhealthy '+v+'</span>';
   return'<span class="badge bp">Hazardous '+v+'</span>';
 }
@@ -276,38 +388,29 @@ function riskBadge(r){
 /* ── Particles ── */
 function initParticles(){
   windParticles=[];
-  for(let i=0;i<NWIND;i++){
-    windParticles.push({lon:(Math.random()-0.5)*360,lat:(Math.random()-0.5)*160,age:Math.random()*200,maxAge:150+Math.random()*100});
-  }
+  for(let i=0;i<NWIND;i++) windParticles.push({lon:(Math.random()-0.5)*360,lat:(Math.random()-0.5)*160,age:Math.random()*200,maxAge:150+Math.random()*100});
   oceanParticles=[];
   for(let i=0;i<NOCEAN;i++){
     const ci=Math.floor(Math.random()*oceanCurrents.length);
-    const cur=oceanCurrents[ci];
-    oceanParticles.push({ci,t:Math.random()*(cur.pts.length-1),age:Math.random()*120,maxAge:120+Math.random()*80});
+    oceanParticles.push({ci,t:Math.random()*(oceanCurrents[ci].pts.length-1),age:Math.random()*120,maxAge:120+Math.random()*80});
   }
 }
 
 function windVec(lat,lon){
-  const lr=lat*Math.PI/180;
-  let u=0,v=0;
-  const al=Math.abs(lat);
+  const lr=lat*Math.PI/180;let u=0,v=0;const al=Math.abs(lat);
   if(al<8){u=(Math.sin(lon*0.04)-0.5)*6;v=Math.cos(lon*0.03)*3;}
   else if(al<28){u=-9-3*Math.cos(lr*3);v=2*Math.sin(lon*Math.PI/90);}
   else if(al<58){u=10+4*Math.cos(lr*2);v=3*Math.sin(lon*Math.PI/60);}
   else{u=-5;v=2*Math.sin(lon*Math.PI/45);}
-  if(lat<0)v*=-1;
-  return{u,v};
+  if(lat<0)v*=-1;return{u,v};
 }
-
 function lerpCurrent(ci,t){
-  const pts=oceanCurrents[ci].pts;
-  const i=Math.floor(t);
-  const f=t-i;
+  const pts=oceanCurrents[ci].pts;const i=Math.floor(t);const f=t-i;
   if(i>=pts.length-1)return{lon:pts[pts.length-1][0],lat:pts[pts.length-1][1]};
   return{lon:pts[i][0]+(pts[i+1][0]-pts[i][0])*f,lat:pts[i][1]+(pts[i+1][1]-pts[i][1])*f};
 }
 
-/* ── Main draw ── */
+/* ══════════════════ MAIN DRAW ══════════════════ */
 function drawFrame(){
   const W=gc.width,H=gc.height;
   if(!W||!H)return;
@@ -315,218 +418,242 @@ function drawFrame(){
   const path=d3.geoPath().projection(p).context(ctx);
   ctx.clearRect(0,0,W,H);
 
-  /* Ocean background — deeper blue for contrast */
+  // Ocean
   ctx.beginPath();path({type:'Sphere'});
-  ctx.fillStyle='#060e1e';ctx.fill();
-
-  /* Subtle ocean depth gradient */
+  ctx.fillStyle='#050c1c';ctx.fill();
   const cx=W/2+panX,cy=H/2+panY;
-  const oceanGrad=ctx.createRadialGradient(cx,cy,0,cx,cy,Math.min(W,H)*0.5);
-  oceanGrad.addColorStop(0,'rgba(8,22,50,0.6)');
-  oceanGrad.addColorStop(1,'rgba(4,10,28,0.3)');
-  ctx.beginPath();path({type:'Sphere'});
-  ctx.fillStyle=oceanGrad;ctx.fill();
+  const og=ctx.createRadialGradient(cx*0.9,cy*0.85,0,cx,cy,Math.min(W,H)*0.55);
+  og.addColorStop(0,'rgba(10,25,55,0.5)');og.addColorStop(1,'rgba(3,8,20,0.2)');
+  ctx.beginPath();path({type:'Sphere'});ctx.fillStyle=og;ctx.fill();
 
-  /* Graticule */
-  const grat=d3.geoGraticule()();
-  ctx.beginPath();path(grat);
-  ctx.strokeStyle='rgba(60,100,160,0.1)';ctx.lineWidth=0.4;ctx.stroke();
+  // Graticule
+  ctx.beginPath();path(d3.geoGraticule()());
+  ctx.strokeStyle='rgba(40,80,140,0.08)';ctx.lineWidth=0.4;ctx.stroke();
 
-  /* PM2.5 regions (under land) */
+  // PM2.5 under land
   if(layers.pm25&&world){
     pm25Regions.forEach(r=>{
-      const n=28;
-      ctx.beginPath();
+      const n=32;ctx.beginPath();
       for(let i=0;i<=n;i++){
         const a=(i/n)*Math.PI*2;
         const lo=r.lon+r.r*Math.cos(a)*1.3,la=r.lat+r.r*Math.sin(a)*0.65;
         const pt=p([lo,la]);if(!pt)continue;
         i===0?ctx.moveTo(pt[0],pt[1]):ctx.lineTo(pt[0],pt[1]);
       }
-      ctx.closePath();
-      ctx.fillStyle=col(r.lv,0.30);ctx.fill();
+      ctx.closePath();ctx.fillStyle=col(r.lv,0.25);ctx.fill();
     });
   }
 
-  /* Land — brighter fill for contrast against dark ocean */
+  // Land
   if(world){
     ctx.beginPath();path(topojson.feature(world,world.objects.countries));
-    ctx.fillStyle='#243040';ctx.fill();
-    /* Coastline emphasis */
+    ctx.fillStyle='#1e2e40';ctx.fill();
+    // Subtle terrain texture
     ctx.beginPath();path(topojson.feature(world,world.objects.countries));
-    ctx.strokeStyle='rgba(100,160,200,0.45)';ctx.lineWidth=0.8;ctx.stroke();
-    /* Country borders — subtler than coastline */
+    ctx.fillStyle='rgba(30,50,70,0.3)';ctx.fill();
+    // Coastlines
+    ctx.beginPath();path(topojson.feature(world,world.objects.countries));
+    ctx.strokeStyle='rgba(80,140,200,0.4)';ctx.lineWidth=0.9;ctx.stroke();
+    // Borders
     ctx.beginPath();path(topojson.mesh(world,world.objects.countries,(a,b)=>a!==b));
-    ctx.strokeStyle='rgba(120,150,180,0.22)';ctx.lineWidth=0.3;ctx.stroke();
+    ctx.strokeStyle='rgba(100,140,180,0.15)';ctx.lineWidth=0.3;ctx.stroke();
   }
 
-  /* AQI overlay */
+  // AQI overlay
   if(layers.aqi){
     pfasHotspots.forEach(h=>{
       const pt=p([h.lon,h.lat]);if(!pt)return;
       const r=20+h.lv*35;
       const g=ctx.createRadialGradient(pt[0],pt[1],0,pt[0],pt[1],r);
-      g.addColorStop(0,col(h.lv,0.42));g.addColorStop(1,'rgba(0,0,0,0)');
+      g.addColorStop(0,col(h.lv,0.38));g.addColorStop(1,'rgba(0,0,0,0)');
       ctx.beginPath();ctx.arc(pt[0],pt[1],r,0,Math.PI*2);
       ctx.fillStyle=g;ctx.fill();
     });
   }
 
-  /* CDC at-risk areas */
+  // CDC at-risk
   if(layers.risk){
     cdcRiskAreas.forEach(area=>{
       const pt=p([area.lon,area.lat]);if(!pt)return;
-      const baseR=8+area.r*5*zoomK*0.3;
-      /* Pulsing glow */
-      const g=ctx.createRadialGradient(pt[0],pt[1],0,pt[0],pt[1],baseR*1.8);
-      g.addColorStop(0,'rgba(220,50,50,0.28)');
-      g.addColorStop(0.6,'rgba(220,50,50,0.12)');
-      g.addColorStop(1,'rgba(220,50,50,0)');
-      ctx.beginPath();ctx.arc(pt[0],pt[1],baseR*1.8,0,Math.PI*2);
-      ctx.fillStyle=g;ctx.fill();
-      /* Dashed ring */
+      const baseR=8+area.r*4.5*Math.min(zoomK*0.4,2);
+      const g=ctx.createRadialGradient(pt[0],pt[1],0,pt[0],pt[1],baseR*2);
+      g.addColorStop(0,'rgba(220,50,50,0.22)');g.addColorStop(0.5,'rgba(220,50,50,0.08)');g.addColorStop(1,'rgba(220,50,50,0)');
+      ctx.beginPath();ctx.arc(pt[0],pt[1],baseR*2,0,Math.PI*2);ctx.fillStyle=g;ctx.fill();
       ctx.beginPath();ctx.arc(pt[0],pt[1],baseR,0,Math.PI*2);
       ctx.setLineDash([3,3]);
-      ctx.strokeStyle=area.risk==='Critical'?'rgba(180,50,200,0.7)':area.risk==='High'?'rgba(220,70,70,0.65)':'rgba(220,140,50,0.55)';
-      ctx.lineWidth=1.2;ctx.stroke();
-      ctx.setLineDash([]);
-      /* Center dot */
-      ctx.beginPath();ctx.arc(pt[0],pt[1],2.5,0,Math.PI*2);
-      ctx.fillStyle=area.risk==='Critical'?'rgba(180,50,200,0.9)':'rgba(220,70,70,0.85)';
-      ctx.fill();
+      ctx.strokeStyle=area.risk==='Critical'?'rgba(160,50,180,0.6)':area.risk==='High'?'rgba(210,65,65,0.55)':'rgba(210,130,50,0.45)';
+      ctx.lineWidth=1;ctx.stroke();ctx.setLineDash([]);
+      ctx.beginPath();ctx.arc(pt[0],pt[1],2,0,Math.PI*2);
+      ctx.fillStyle=area.risk==='Critical'?'rgba(170,50,190,0.85)':'rgba(210,65,65,0.8)';ctx.fill();
     });
   }
 
-  /* PFAS hotspots */
+  // PFAS hotspots with pulsing
   if(layers.pfas){
     pfasHotspots.forEach(h=>{
       const pt=p([h.lon,h.lat]);if(!pt)return;
-      const r=5+h.lv*9;
+      const r=4+h.lv*8;
+      // Pulse ring for high/critical
+      if(h.lv>=0.6){
+        const pulseR=r+4+Math.sin(pulseT*0.04)*3+h.lv*6;
+        const pulseAlpha=0.15+Math.sin(pulseT*0.04)*0.1;
+        ctx.beginPath();ctx.arc(pt[0],pt[1],pulseR,0,Math.PI*2);
+        ctx.strokeStyle=col(h.lv,pulseAlpha);ctx.lineWidth=1.5;ctx.stroke();
+      }
       ctx.beginPath();ctx.arc(pt[0],pt[1],r,0,Math.PI*2);
-      ctx.fillStyle=col(h.lv,0.78);ctx.fill();
-      ctx.strokeStyle='rgba(255,255,255,0.3)';ctx.lineWidth=0.7;ctx.stroke();
+      ctx.fillStyle=col(h.lv,0.75);ctx.fill();
+      ctx.strokeStyle='rgba(255,255,255,0.25)';ctx.lineWidth=0.6;ctx.stroke();
     });
   }
 
-  /* Pins */
+  // Pins
   if(layers.pins){
     pfasMonStations.forEach(st=>{
       const pt=p([st.lon,st.lat]);if(!pt)return;
-      ctx.beginPath();ctx.arc(pt[0],pt[1],5,0,Math.PI*2);
-      ctx.fillStyle='rgba(240,224,60,0.9)';ctx.fill();
-      ctx.strokeStyle='rgba(255,255,255,0.6)';ctx.lineWidth=1;ctx.stroke();
-      ctx.beginPath();ctx.moveTo(pt[0],pt[1]-5);ctx.lineTo(pt[0],pt[1]-12);
-      ctx.strokeStyle='rgba(240,224,60,0.7)';ctx.lineWidth=1;ctx.stroke();
+      // Pin stem
+      ctx.beginPath();ctx.moveTo(pt[0],pt[1]-4);ctx.lineTo(pt[0],pt[1]-13);
+      ctx.strokeStyle='rgba(240,224,60,0.5)';ctx.lineWidth=1;ctx.stroke();
+      // Pin head
+      ctx.beginPath();ctx.arc(pt[0],pt[1]-13,4,0,Math.PI*2);
+      ctx.fillStyle='rgba(240,224,60,0.85)';ctx.fill();
+      ctx.strokeStyle='rgba(255,255,255,0.5)';ctx.lineWidth=0.8;ctx.stroke();
     });
     openAQStations.slice(0,80).forEach(st=>{
       const pt=p([st.lon,st.lat]);if(!pt)return;
       ctx.beginPath();ctx.arc(pt[0],pt[1],3,0,Math.PI*2);
-      ctx.fillStyle='rgba(80,200,232,0.85)';ctx.fill();
-      ctx.strokeStyle='rgba(255,255,255,0.4)';ctx.lineWidth=0.5;ctx.stroke();
+      ctx.fillStyle='rgba(80,200,232,0.8)';ctx.fill();
+      ctx.strokeStyle='rgba(255,255,255,0.35)';ctx.lineWidth=0.5;ctx.stroke();
     });
   }
 
-  /* Selected point */
+  // Selected point
   if(selPt){
     const pt=p([selPt.lon,selPt.lat]);
     if(pt){
-      ctx.beginPath();ctx.arc(pt[0],pt[1],8,0,Math.PI*2);
-      ctx.strokeStyle='#7ec8f8';ctx.lineWidth=2;ctx.stroke();
+      ctx.beginPath();ctx.arc(pt[0],pt[1],10,0,Math.PI*2);
+      ctx.strokeStyle='rgba(120,200,248,0.5)';ctx.lineWidth=1.5;ctx.stroke();
       ctx.beginPath();ctx.arc(pt[0],pt[1],3,0,Math.PI*2);
       ctx.fillStyle='#7ec8f8';ctx.fill();
     }
   }
 
-  /* Globe outline */
+  // Globe ring
   ctx.beginPath();path({type:'Sphere'});
-  ctx.strokeStyle='rgba(60,110,180,0.3)';ctx.lineWidth=1;ctx.stroke();
+  ctx.strokeStyle='rgba(50,100,170,0.2)';ctx.lineWidth=1;ctx.stroke();
+
+  // Draw inset if zoomed
+  drawInset();
 }
 
-/* ── Animated layer (wind/ocean) ── */
+/* ── Animated wind/ocean ── */
 function drawAnimated(){
   const W=wc.width,H=wc.height;
   if(!W||!H){requestAnimationFrame(drawAnimated);return;}
   const p=getProj(W,H);
   wctx.clearRect(0,0,W,H);
+  pulseT++;
 
   if(layers.wind){
     windT+=0.5;
     windParticles.forEach(pt=>{
       pt.age++;
-      if(pt.age>pt.maxAge){
-        pt.lon=(Math.random()-0.5)*360;
-        pt.lat=(Math.random()-0.5)*160;
-        pt.age=0;pt.maxAge=150+Math.random()*100;
-      }
-      const wv=windVec(pt.lat,pt.lon);
-      const spd=Math.sqrt(wv.u*wv.u+wv.v*wv.v);
-      const dt=0.12;
-      const nlon=pt.lon+wv.u*dt;
-      const nlat=Math.max(-85,Math.min(85,pt.lat+wv.v*dt));
+      if(pt.age>pt.maxAge){pt.lon=(Math.random()-0.5)*360;pt.lat=(Math.random()-0.5)*160;pt.age=0;pt.maxAge=150+Math.random()*100;}
+      const wv=windVec(pt.lat,pt.lon);const spd=Math.sqrt(wv.u*wv.u+wv.v*wv.v);
+      const nlon=pt.lon+wv.u*0.12;const nlat=Math.max(-85,Math.min(85,pt.lat+wv.v*0.12));
       const c1=p([pt.lon,pt.lat]),c2=p([nlon,nlat]);
       if(c1&&c2){
         const fade=Math.sin((pt.age/pt.maxAge)*Math.PI);
-        const speedAlpha=Math.min(spd/14,1);
+        const sa=Math.min(spd/14,1);
         wctx.beginPath();wctx.moveTo(c1[0],c1[1]);wctx.lineTo(c2[0],c2[1]);
-        wctx.strokeStyle=`rgba(80,160,220,${0.4*fade*speedAlpha})`;
-        wctx.lineWidth=0.8;wctx.stroke();
-        wctx.beginPath();wctx.arc(c2[0],c2[1],1,0,Math.PI*2);
-        wctx.fillStyle=`rgba(120,190,240,${0.5*fade*speedAlpha})`;wctx.fill();
+        wctx.strokeStyle=`rgba(70,150,220,${0.35*fade*sa})`;wctx.lineWidth=0.7;wctx.stroke();
+        wctx.beginPath();wctx.arc(c2[0],c2[1],0.8,0,Math.PI*2);
+        wctx.fillStyle=`rgba(110,185,240,${0.45*fade*sa})`;wctx.fill();
       }
       pt.lon=nlon;pt.lat=nlat;
     });
   }
-
   if(layers.ocean){
     oceanT+=0.3;
     oceanParticles.forEach(op=>{
-      op.t+=0.015;
-      op.age++;
+      op.t+=0.015;op.age++;
       const cur=oceanCurrents[op.ci];
-      if(op.t>=cur.pts.length-1||op.age>op.maxAge){
-        op.t=0;op.age=0;op.ci=Math.floor(Math.random()*oceanCurrents.length);
-      }
+      if(op.t>=cur.pts.length-1||op.age>op.maxAge){op.t=0;op.age=0;op.ci=Math.floor(Math.random()*oceanCurrents.length);}
       const pos=lerpCurrent(op.ci,op.t);
       const npos=lerpCurrent(op.ci,Math.min(op.t+0.06,cur.pts.length-1));
       const c1=p([pos.lon,pos.lat]),c2=p([npos.lon,npos.lat]);
       if(c1&&c2){
         const fade=Math.sin((op.age/op.maxAge)*Math.PI)*0.85;
         wctx.beginPath();wctx.moveTo(c1[0],c1[1]);wctx.lineTo(c2[0],c2[1]);
-        wctx.strokeStyle=`rgba(32,184,160,${0.55*fade})`;
-        wctx.lineWidth=1.2;wctx.stroke();
-        wctx.beginPath();wctx.arc(c2[0],c2[1],1.4,0,Math.PI*2);
-        wctx.fillStyle=`rgba(60,220,190,${0.6*fade})`;wctx.fill();
+        wctx.strokeStyle=`rgba(32,184,160,${0.5*fade})`;wctx.lineWidth=1.1;wctx.stroke();
+        wctx.beginPath();wctx.arc(c2[0],c2[1],1.2,0,Math.PI*2);
+        wctx.fillStyle=`rgba(60,220,190,${0.55*fade})`;wctx.fill();
       }
     });
   }
 
+  // Redraw main frame for pulse animation
+  if(layers.pfas) drawFrame();
+
   requestAnimationFrame(drawAnimated);
+}
+
+/* ── Inset mini-map ── */
+function drawInset(){
+  const insetWrap=document.getElementById('inset-wrap');
+  if(zoomK<1.8){insetWrap.style.display='none';return;}
+  insetWrap.style.display='block';
+  const w=100,h=60;
+  insetCanvas.width=w;insetCanvas.height=h;
+  const ip=d3.geoEquirectangular().scale(15).translate([w/2,h/2]);
+  const ipath=d3.geoPath().projection(ip).context(ictx);
+  ictx.clearRect(0,0,w,h);
+  ictx.fillStyle='#0a1428';ictx.fillRect(0,0,w,h);
+  if(world){
+    ictx.beginPath();ipath(topojson.feature(world,world.objects.countries));
+    ictx.fillStyle='#1a2838';ictx.fill();
+    ictx.strokeStyle='rgba(80,130,180,0.2)';ictx.lineWidth=0.3;ictx.stroke();
+  }
+  // View indicator
+  let viewLon=-rotLon,viewLat=rotLat;
+  if(!isGlobeProj()){viewLon=0;viewLat=0;}
+  const vpt=ip([viewLon,viewLat]);
+  if(vpt){
+    ictx.beginPath();ictx.arc(vpt[0],vpt[1],3,0,Math.PI*2);
+    ictx.strokeStyle='rgba(120,200,248,0.8)';ictx.lineWidth=1.2;ictx.stroke();
+    ictx.beginPath();ictx.arc(vpt[0],vpt[1],1,0,Math.PI*2);
+    ictx.fillStyle='#7ec8f8';ictx.fill();
+  }
 }
 
 /* ── Resize ── */
 function resize(){
   const W=wrap.clientWidth,H=wrap.clientHeight;
-  gc.width=W;gc.height=H;
-  wc.width=W;wc.height=H;
+  gc.width=W;gc.height=H;wc.width=W;wc.height=H;
   drawFrame();
 }
 
 /* ── Controls ── */
+function toggleLayerPanel(){
+  layerPanelOpen=!layerPanelOpen;
+  document.getElementById('layer-panel').classList.toggle('open',layerPanelOpen);
+  document.getElementById('layers-btn').classList.toggle('active',layerPanelOpen);
+}
+
 function tog(k){
   layers[k]=!layers[k];
-  const btn=document.getElementById('b-'+k);
+  const chk=document.getElementById('lc-'+k);
   if(k==='risk'){
-    btn.classList.toggle('risk-on',layers[k]);
+    chk.classList.toggle('risk-on',layers[k]);
+    chk.classList.remove('on');
   } else {
-    btn.classList.toggle('on',layers[k]);
+    chk.classList.toggle('on',layers[k]);
   }
   drawFrame();
 }
 
 function setProj(v){
   proj=v;selPt=null;panX=0;panY=0;rotLon=0;rotLat=0;
-  document.getElementById('rot-hint').style.display='block';
-  drawFrame();
+  closeInfo();drawFrame();
 }
 
 function zoom(f){zoomK=Math.max(0.5,Math.min(12,zoomK*f));drawFrame();}
@@ -535,50 +662,38 @@ function gotoCoords(){
   const la=parseFloat(document.getElementById('ilat').value);
   const lo=parseFloat(document.getElementById('ilon').value);
   if(isNaN(la)||isNaN(lo))return;
-  if(isGlobeProj()){
-    rotLon=-lo;rotLat=la;
-  }
+  if(isGlobeProj()){rotLon=-lo;rotLat=la;}
   showInfo(la,lo,null,null);
+}
+
+function closeInfo(){
+  document.getElementById('info').style.display='none';
+  selPt=null;drawFrame();
 }
 
 /* ── Lookups ── */
 function nearest(lat,lon){
   let b=null,bd=999;
-  pfasHotspots.forEach(h=>{
-    const d=Math.sqrt((h.lat-lat)**2+(h.lon-lon)**2);
-    if(d<bd){bd=d;b=h;}
-  });
+  pfasHotspots.forEach(h=>{const d=Math.sqrt((h.lat-lat)**2+(h.lon-lon)**2);if(d<bd){bd=d;b=h;}});
   return bd<15?{...b,est:bd>3}:{lat,lon,lv:.05+Math.random()*.15,name:'Remote / background',src:'Estimated',est:true};
 }
-
 function nearestStation(lat,lon){
   let b=null,bd=999;
-  pfasMonStations.forEach(s=>{
-    const d=Math.sqrt((s.lat-lat)**2+(s.lon-lon)**2);
-    if(d<bd){bd=d;b=s;}
-  });
+  pfasMonStations.forEach(s=>{const d=Math.sqrt((s.lat-lat)**2+(s.lon-lon)**2);if(d<bd){bd=d;b=s;}});
   return bd<8?b:null;
 }
-
 function nearestOpenAQ(lat,lon){
   let b=null,bd=999;
-  openAQStations.forEach(s=>{
-    const d=Math.sqrt((s.lat-lat)**2+(s.lon-lon)**2);
-    if(d<bd){bd=d;b=s;}
-  });
+  openAQStations.forEach(s=>{const d=Math.sqrt((s.lat-lat)**2+(s.lon-lon)**2);if(d<bd){bd=d;b=s;}});
   return bd<3?b:null;
 }
-
 function nearestRiskArea(lat,lon){
   let b=null,bd=999;
-  cdcRiskAreas.forEach(a=>{
-    const d=Math.sqrt((a.lat-lat)**2+(a.lon-lon)**2);
-    if(d<bd){bd=d;b=a;}
-  });
+  cdcRiskAreas.forEach(a=>{const d=Math.sqrt((a.lat-lat)**2+(a.lon-lon)**2);if(d<bd){bd=d;b=a;}});
   return bd<5?b:null;
 }
 
-/* ── Info panel ── */
+/* ── Info panel (redesigned) ── */
 function showInfo(lat,lon,stationOverride,aqStation){
   lat=Math.round(lat*1000)/1000;lon=Math.round(lon*1000)/1000;
   selPt={lat,lon};
@@ -590,170 +705,220 @@ function showInfo(lat,lon,stationOverride,aqStation){
   const aqi=aq?Math.round(aq.aqi):Math.round(12+spot.lv*275);
   const pfasIdx=Math.round(spot.lv*100)/100;
 
-  let html=`<div style="font-weight:500;color:#e8e6e0;margin-bottom:6px;font-size:12px">${spot.name}${spot.est?' <span style="color:rgba(255,255,255,0.3);font-size:10px">(est.)</span>':''}</div>`;
-  html+=`<div class="ir"><span class="ik">Coordinates</span><span class="iv">${lat}°, ${lon}°</span></div>`;
-  html+=`<div class="ir"><span class="ik">PFAS index</span><span>${badge(pfasIdx)} <span class="iv" style="font-size:10px">${pfasIdx}</span></span></div>`;
-  html+=`<div class="ir"><span class="ik">PM2.5</span><span class="iv">${pm25} μg/m³${aq?' <span style="color:#4fc8e8;font-size:9px">live</span>':''}</span></div>`;
-  html+=`<div class="ir"><span class="ik">AQI</span><span>${aqiBadge(aqi)}</span></div>`;
-  if(spot.src)html+=`<div class="ir"><span class="ik">Source</span><span class="iv" style="font-size:10px">${spot.src}</span></div>`;
+  // Header
+  document.querySelector('#info-header .ih-name').innerHTML=`${spot.name}${spot.est?' <span style="opacity:0.35;font-size:10px;font-weight:400">(est.)</span>':''}`;
+  document.querySelector('#info-header .ih-coords').textContent=`${lat}°, ${lon}°`;
 
-  /* CDC at-risk area section */
+  // Body
+  let html='';
+  // PFAS metric
+  html+=`<div class="info-metric">
+    <div class="im-icon" style="background:rgba(220,100,30,0.15);color:#e8943a">☢</div>
+    <div class="im-data"><div class="im-label">PFAS Index</div><div class="im-value">${badge(pfasIdx)} <span style="font-family:'JetBrains Mono',monospace;font-size:11px;opacity:0.7">${pfasIdx}</span></div></div>
+  </div>`;
+  // PM2.5
+  html+=`<div class="info-metric">
+    <div class="im-icon" style="background:rgba(80,160,220,0.12);color:#5aa8dc">◉</div>
+    <div class="im-data"><div class="im-label">PM2.5</div><div class="im-value">${pm25} <span style="font-size:9px;opacity:0.5">μg/m³</span>${aq?' <span style="color:#4fc8e8;font-size:8px;background:rgba(80,200,232,0.12);padding:1px 5px;border-radius:3px">LIVE</span>':''}</div></div>
+  </div>`;
+  // AQI
+  html+=`<div class="info-metric">
+    <div class="im-icon" style="background:rgba(100,70,210,0.12);color:#9080d8">◈</div>
+    <div class="im-data"><div class="im-label">Air Quality Index</div><div class="im-value">${aqiBadge(aqi)}</div></div>
+  </div>`;
+  // Source
+  if(spot.src){
+    html+=`<div class="info-metric">
+      <div class="im-icon" style="background:rgba(255,255,255,0.04);color:rgba(255,255,255,0.35);font-size:11px">⊡</div>
+      <div class="im-data"><div class="im-label">Data Source</div><div class="im-value" style="font-size:10px;opacity:0.7">${spot.src}</div></div>
+    </div>`;
+  }
+
+  // CDC risk section
   if(riskArea){
-    html+=`<div style="border-top:1px solid rgba(220,60,60,0.25);margin-top:7px;padding-top:7px">`;
-    html+=`<div style="color:#e87070;font-size:10px;font-weight:600;margin-bottom:4px">⚠ CDC/ATSDR At-Risk Area</div>`;
-    html+=`<div class="ir"><span class="ik">Site</span><span class="iv" style="font-size:10px;max-width:140px;text-align:right">${riskArea.name}</span></div>`;
-    html+=`<div class="ir"><span class="ik">Risk level</span><span>${riskBadge(riskArea.risk)}</span></div>`;
-    html+=`<div class="ir"><span class="ik">Source</span><span class="iv" style="font-size:10px">${riskArea.src}</span></div>`;
-    html+=`<div style="margin-top:4px;font-size:9px;color:rgba(230,180,180,0.65);line-height:1.35">${riskArea.detail}</div>`;
-    html+=`</div>`;
+    html+=`<div class="info-section">
+      <div class="is-title" style="color:#e87070">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        CDC/ATSDR At-Risk Area
+      </div>
+      <div class="is-row"><span class="is-k">Site</span><span class="is-v">${riskArea.name}</span></div>
+      <div class="is-row"><span class="is-k">Risk</span><span class="is-v">${riskBadge(riskArea.risk)}</span></div>
+      <div class="is-row"><span class="is-k">Source</span><span class="is-v">${riskArea.src}</span></div>
+      <div style="margin-top:5px;font-size:9px;color:rgba(230,170,170,0.55);line-height:1.4">${riskArea.detail}</div>
+    </div>`;
   }
 
+  // Station section
   if(st){
-    html+=`<div style="border-top:1px solid rgba(255,255,255,0.1);margin-top:7px;padding-top:7px">`;
-    html+=`<div style="color:#f0e050;font-size:10px;font-weight:500;margin-bottom:4px">PFAS monitoring station</div>`;
-    html+=`<div class="ir"><span class="ik">Agency</span><span class="iv" style="font-size:10px">${st.agency}</span></div>`;
-    html+=`<div class="ir"><span class="ik">Last collected</span><span class="iv">${st.lastCollected}</span></div>`;
-    html+=`<div class="ir"><span class="ik">Sensors</span><span class="iv" style="font-size:9px;max-width:130px;text-align:right">${st.sensors}</span></div>`;
-    html+=`<div class="ir"><span class="ik">Frequency</span><span class="iv">${st.freq}</span></div>`;
-    html+=`</div>`;
+    html+=`<div class="info-section">
+      <div class="is-title" style="color:#f0e050">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="10" r="3"/><path d="M12 21.7C17.3 17 20 13 20 10a8 8 0 1 0-16 0c0 3 2.7 7 8 11.7z"/></svg>
+        PFAS Monitoring Station
+      </div>
+      <div class="is-row"><span class="is-k">Agency</span><span class="is-v" style="font-size:9px">${st.agency}</span></div>
+      <div class="is-row"><span class="is-k">Last collected</span><span class="is-v">${st.lastCollected}</span></div>
+      <div class="is-row"><span class="is-k">Sensors</span><span class="is-v" style="font-size:8px;max-width:150px">${st.sensors}</span></div>
+      <div class="is-row"><span class="is-k">Frequency</span><span class="is-v">${st.freq}</span></div>
+    </div>`;
   }
+
+  // OpenAQ section
   if(aq&&aq.name){
-    html+=`<div style="border-top:1px solid rgba(255,255,255,0.1);margin-top:7px;padding-top:7px">`;
-    html+=`<div style="color:#4fc8e8;font-size:10px;font-weight:500;margin-bottom:4px">OpenAQ sensor</div>`;
-    html+=`<div class="ir"><span class="ik">Station</span><span class="iv" style="font-size:10px">${aq.name}</span></div>`;
-    html+=`<div class="ir"><span class="ik">Updated</span><span class="iv">${aq.updated}</span></div>`;
-    html+=`</div>`;
+    html+=`<div class="info-section">
+      <div class="is-title" style="color:#4fc8e8">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+        OpenAQ Live Sensor
+      </div>
+      <div class="is-row"><span class="is-k">Station</span><span class="is-v" style="font-size:9px">${aq.name}</span></div>
+      <div class="is-row"><span class="is-k">Updated</span><span class="is-v">${aq.updated}</span></div>
+    </div>`;
   }
-  html+=`<div style="margin-top:6px;font-size:9px;color:rgba(255,255,255,0.25)">PFAS values modeled; PM2.5/AQI from OpenAQ where available</div>`;
-  const panel=document.getElementById('info');
-  panel.innerHTML=html;panel.style.display='block';
+
+  document.getElementById('info-body').innerHTML=html;
+  document.getElementById('info').style.display='block';
   drawFrame();
 }
 
-/* ── OpenAQ fetch ── */
+/* ── OpenAQ ── */
 async function fetchOpenAQ(){
   document.getElementById('api-status').textContent='OpenAQ: fetching…';
   try{
     const r=await fetch('https://api.openaq.org/v3/locations?limit=100&parameters_id=2&order_by=lastUpdated&sort_order=desc',{headers:{'accept':'application/json'}});
     if(!r.ok)throw new Error('HTTP '+r.status);
-    const d=await r.json();
-    openAQStations=[];
+    const d=await r.json();openAQStations=[];
     (d.results||[]).forEach(loc=>{
       if(!loc.coordinates)return;
       const pm=loc.sensors?.find(s=>s.parameter?.name==='pm25'||s.parameter?.name==='PM2.5');
-      openAQStations.push({
-        lat:loc.coordinates.latitude,
-        lon:loc.coordinates.longitude,
-        name:loc.name,
+      openAQStations.push({lat:loc.coordinates.latitude,lon:loc.coordinates.longitude,name:loc.name,
         pm25:pm?.summary?.avg||pm?.latest?.value||null,
         aqi:pm?.summary?.avg?Math.round(pm.summary.avg*4.5+10):null,
         updated:loc.datetimeLast?.local?new Date(loc.datetimeLast.local).toLocaleString():'unknown',
       });
     });
-    document.getElementById('api-status').textContent=`OpenAQ: ${openAQStations.length} live stations`;
+    document.getElementById('api-status').textContent=`OpenAQ: ${openAQStations.length} stations`;
     drawFrame();
-  }catch(e){
-    document.getElementById('api-status').textContent='OpenAQ: unavailable (CORS/network)';
-  }
+  }catch(e){document.getElementById('api-status').textContent='OpenAQ: unavailable';}
 }
 
-/* ── Interaction: click, drag, wheel ── */
-const gc_=gc;
+/* ── Search ── */
+const searchInput=document.getElementById('search-input');
+const searchResults=document.getElementById('search-results');
+let searchTimeout=null;
 
-gc_.addEventListener('click',e=>{
-  if(Math.abs(e.clientX-(dragStart?.x||e.clientX))>3)return;
-  const rect=gc_.getBoundingClientRect();
-  const x=(e.clientX-rect.left)*(gc_.width/rect.width);
-  const y=(e.clientY-rect.top)*(gc_.height/rect.height);
-  const p=getProj(gc_.width,gc_.height);
+searchInput.addEventListener('input',()=>{
+  clearTimeout(searchTimeout);
+  searchTimeout=setTimeout(()=>{
+    const q=searchInput.value.trim().toLowerCase();
+    if(q.length<2){searchResults.style.display='none';return;}
+    const matches=searchIndex.filter(s=>s.name.toLowerCase().includes(q)).slice(0,8);
+    if(!matches.length){searchResults.style.display='none';return;}
+    searchResults.innerHTML=matches.map(m=>
+      `<div class="sr-item" onclick="searchGo(${m.lat},${m.lon},'${m.name.replace(/'/g,"\\'")}')">
+        <div>${m.name}</div>
+        <div class="sr-sub">${m.type} · ${m.lat.toFixed(2)}°, ${m.lon.toFixed(2)}°</div>
+      </div>`
+    ).join('');
+    searchResults.style.display='block';
+  },150);
+});
+
+searchInput.addEventListener('keydown',e=>{
+  if(e.key==='Escape'){searchResults.style.display='none';searchInput.blur();}
+  if(e.key==='Enter'){
+    const first=searchResults.querySelector('.sr-item');
+    if(first)first.click();
+  }
+});
+document.addEventListener('click',e=>{
+  if(!e.target.closest('#search-wrap'))searchResults.style.display='none';
+});
+
+function searchGo(lat,lon,name){
+  searchResults.style.display='none';
+  searchInput.value=name;
+  if(isGlobeProj()){rotLon=-lon;rotLat=lat;}
+  zoomK=Math.max(zoomK,2.5);
+  showInfo(lat,lon,null,null);
+}
+
+/* ── Export screenshot ── */
+function exportScreenshot(){
+  const exp=document.createElement('canvas');
+  exp.width=gc.width;exp.height=gc.height;
+  const ectx=exp.getContext('2d');
+  ectx.drawImage(gc,0,0);
+  ectx.drawImage(wc,0,0);
+  // Watermark
+  ectx.font='10px "DM Sans",sans-serif';
+  ectx.fillStyle='rgba(255,255,255,0.25)';
+  ectx.fillText('PFAS Global Monitor · Sam Holmes',10,gc.height-10);
+  const link=document.createElement('a');
+  link.download='pfas-map-export.png';
+  link.href=exp.toDataURL('image/png');
+  link.click();
+}
+
+/* ── Interactions ── */
+gc.addEventListener('click',e=>{
+  if(dragStart&&Math.abs(e.clientX-dragStart.x)+Math.abs(e.clientY-dragStart.y)>6)return;
+  const rect=gc.getBoundingClientRect();
+  const x=(e.clientX-rect.left)*(gc.width/rect.width);
+  const y=(e.clientY-rect.top)*(gc.height/rect.height);
+  const p=getProj(gc.width,gc.height);
   const inv=p.invert?p.invert([x,y]):null;
   if(!inv)return;
-
-  let hitStation=null,hitOAQ=null,hitRisk=null;
-  pfasMonStations.forEach(st=>{
-    const pt=p([st.lon,st.lat]);
-    if(pt&&Math.sqrt((pt[0]-x)**2+(pt[1]-y)**2)<10)hitStation=st;
-  });
-  openAQStations.slice(0,80).forEach(st=>{
-    const pt=p([st.lon,st.lat]);
-    if(pt&&Math.sqrt((pt[0]-x)**2+(pt[1]-y)**2)<8)hitOAQ=st;
-  });
+  let hitStation=null,hitOAQ=null;
+  pfasMonStations.forEach(st=>{const pt=p([st.lon,st.lat]);if(pt&&Math.sqrt((pt[0]-x)**2+(pt[1]-y)**2)<12)hitStation=st;});
+  openAQStations.slice(0,80).forEach(st=>{const pt=p([st.lon,st.lat]);if(pt&&Math.sqrt((pt[0]-x)**2+(pt[1]-y)**2)<10)hitOAQ=st;});
   showInfo(inv[1],inv[0],hitStation,hitOAQ);
 });
 
-/* Drag: rotate for globe projections, pan for flat projections */
-gc_.addEventListener('mousedown',e=>{
+gc.addEventListener('mousedown',e=>{
   dragStart={x:e.clientX,y:e.clientY};
-  if(isGlobeProj()){
-    rotStart=[rotLon,rotLat];
-  } else {
-    panStart=[panX,panY];
-  }
-  dragging=true;
-  gc_.style.cursor='grabbing';
+  if(isGlobeProj()){rotStart=[rotLon,rotLat];}else{panStart=[panX,panY];}
+  dragging=true;gc.style.cursor='grabbing';
 });
-gc_.addEventListener('mousemove',e=>{
+gc.addEventListener('mousemove',e=>{
   if(!dragging)return;
   const dx=e.clientX-dragStart.x,dy=e.clientY-dragStart.y;
-  if(isGlobeProj()){
-    rotLon=rotStart[0]-dx*0.4;
-    rotLat=Math.max(-89,Math.min(89,rotStart[1]+dy*0.3));
-  } else {
-    panX=panStart[0]+dx;
-    panY=panStart[1]+dy;
-  }
+  if(isGlobeProj()){rotLon=rotStart[0]-dx*0.4;rotLat=Math.max(-89,Math.min(89,rotStart[1]+dy*0.3));}
+  else{panX=panStart[0]+dx;panY=panStart[1]+dy;}
   drawFrame();
 });
-gc_.addEventListener('mouseup',()=>{dragging=false;gc_.style.cursor='crosshair';});
-gc_.addEventListener('mouseleave',()=>{dragging=false;gc_.style.cursor='crosshair';});
+gc.addEventListener('mouseup',()=>{dragging=false;gc.style.cursor='crosshair';});
+gc.addEventListener('mouseleave',()=>{dragging=false;gc.style.cursor='crosshair';});
 
-/* Touch support for mobile drag */
-gc_.addEventListener('touchstart',e=>{
+gc.addEventListener('touchstart',e=>{
   if(e.touches.length!==1)return;
-  const t=e.touches[0];
-  dragStart={x:t.clientX,y:t.clientY};
+  const t=e.touches[0];dragStart={x:t.clientX,y:t.clientY};
   if(isGlobeProj()){rotStart=[rotLon,rotLat];}else{panStart=[panX,panY];}
   dragging=true;
 },{passive:true});
-gc_.addEventListener('touchmove',e=>{
+gc.addEventListener('touchmove',e=>{
   if(!dragging||e.touches.length!==1)return;
-  e.preventDefault();
-  const t=e.touches[0];
+  e.preventDefault();const t=e.touches[0];
   const dx=t.clientX-dragStart.x,dy=t.clientY-dragStart.y;
-  if(isGlobeProj()){
-    rotLon=rotStart[0]-dx*0.4;
-    rotLat=Math.max(-89,Math.min(89,rotStart[1]+dy*0.3));
-  } else {
-    panX=panStart[0]+dx;
-    panY=panStart[1]+dy;
-  }
+  if(isGlobeProj()){rotLon=rotStart[0]-dx*0.4;rotLat=Math.max(-89,Math.min(89,rotStart[1]+dy*0.3));}
+  else{panX=panStart[0]+dx;panY=panStart[1]+dy;}
   drawFrame();
 },{passive:false});
-gc_.addEventListener('touchend',()=>{dragging=false;});
+gc.addEventListener('touchend',()=>{dragging=false;});
 
-/* Scroll zoom */
-gc_.addEventListener('wheel',e=>{
-  e.preventDefault();
-  zoom(e.deltaY<0?1.12:0.89);
-},{passive:false});
+gc.addEventListener('wheel',e=>{e.preventDefault();zoom(e.deltaY<0?1.12:0.89);},{passive:false});
 
-/* ── Legend tooltip ── */
+/* ── Legend ── */
 const legBar=document.getElementById('leg-bar');
-const grad=`linear-gradient(to right,rgba(40,180,60,0.9),rgba(200,160,20,0.9),rgba(220,100,30,0.9),rgba(210,50,50,0.9),rgba(100,70,210,0.9))`;
-legBar.style.background=grad;
+legBar.style.background='linear-gradient(to right,rgba(40,180,60,0.85),rgba(200,160,20,0.85),rgba(220,100,30,0.85),rgba(210,50,50,0.85),rgba(100,70,210,0.85))';
 const legTip=document.getElementById('leg-tip');
 legBar.addEventListener('mousemove',e=>{
-  const r=legBar.getBoundingClientRect();
-  const frac=(e.clientX-r.left)/r.width;
-  const f=Math.round(frac*100)/100;
+  const r=legBar.getBoundingClientRect();const f=(e.clientX-r.left)/r.width;
   let label='';
-  if(f<.25)label=`Low — background PFAS, PM2.5 < 12 μg/m³ (WHO safe)`;
-  else if(f<.45)label=`Moderate — detectable PFAS, PM2.5 12–35 μg/m³`;
-  else if(f<.60)label=`Elevated — near industrial / military zones`;
-  else if(f<.75)label=`High — significant PFAS source, PM2.5 > 55 μg/m³`;
-  else label=`Critical — major industrial/AFFF zone, WHO limit exceeded`;
-  legTip.textContent=label;
-  legTip.style.display='block';
+  if(f<.25)label='Low — background PFAS, PM2.5 < 12 μg/m³';
+  else if(f<.45)label='Moderate — detectable PFAS, PM2.5 12–35 μg/m³';
+  else if(f<.60)label='Elevated — near industrial / military zones';
+  else if(f<.75)label='High — significant PFAS source, PM2.5 > 55 μg/m³';
+  else label='Critical — major industrial/AFFF zone';
+  legTip.textContent=label;legTip.style.display='block';
   legTip.style.left=Math.max(0,Math.min(e.clientX-r.left-60,120))+'px';
 });
 legBar.addEventListener('mouseleave',()=>{legTip.style.display='none';});
