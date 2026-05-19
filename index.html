@@ -273,7 +273,7 @@ const tc=document.getElementById('tc'),tctx=tc.getContext('2d'); // trace canvas
 const wrap=document.getElementById('map-wrap');
 const insetCanvas=document.getElementById('inset-map'),ictx=insetCanvas.getContext('2d');
 
-let world=null,proj='ortho',zoomK=1,rotLon=0,rotLat=0,panX=0,panY=0;
+let world=null,proj='ortho',zoomK=1,rotLon=80,rotLat=35,panX=0,panY=0;
 let layers={pfas:true,pm25:true,aqi:false,wind:true,ocean:false,pins:true,risk:true};
 let selPt=null,windT=0,oceanT=0,pulseT=0;
 let openAQStations=[];
@@ -873,15 +873,12 @@ function loadBuiltIn(){
 async function fetchOpenAQ(){
   const st=document.getElementById('api-status');
   st.textContent='OpenAQ: fetching…';
-  // 1. Cloudflare Worker
+  // Cloudflare Worker proxy
   if(WORKER_URL){
-    try{const r=await fetch(WORKER_URL+'?url='+encodeURIComponent(OPENAQ_URL));
+    try{const r=await fetch(WORKER_URL+'/?url='+OPENAQ_URL);
       if(r.ok){parseOpenAQ(await r.json());return;}}catch(e){}
   }
-  // 2. Direct (in case OpenAQ enables CORS later)
-  try{const r=await fetch(OPENAQ_URL,{headers:{'accept':'application/json','X-API-Key':OPENAQ_KEY}});
-    if(r.ok){parseOpenAQ(await r.json());return;}}catch(e){}
-  // 3. Fallback to built-in reference data
+  // Fallback to built-in reference data
   loadBuiltIn();
 }
 
