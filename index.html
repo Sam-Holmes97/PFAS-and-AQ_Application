@@ -27,6 +27,15 @@ select{font-family:'DM Sans',system-ui,sans-serif;font-size:11px;padding:2px 6px
 .tb-btn.trace-active{background:rgba(255,140,0,0.2);color:#ffb050;border-color:rgba(255,140,0,0.4);animation:trace-glow 2s infinite}
 @keyframes trace-glow{0%,100%{box-shadow:0 0 4px rgba(255,140,0,0.2)}50%{box-shadow:0 0 10px rgba(255,140,0,0.4)}}
 
+/* ── Export dropdown ── */
+#export-menu{position:absolute;top:100%;right:0;margin-top:4px;background:rgba(12,18,30,0.97);border:1px solid rgba(255,255,255,0.1);border-radius:8px;min-width:180px;display:none;z-index:50;backdrop-filter:blur(12px);overflow:hidden;box-shadow:0 6px 24px rgba(0,0,0,0.4)}
+#export-menu.open{display:block}
+.em-item{padding:8px 12px;font-size:11px;color:#b8c8d8;cursor:pointer;display:flex;align-items:center;gap:8px;border-bottom:1px solid rgba(255,255,255,0.04);transition:background 0.1s}
+.em-item:hover{background:rgba(60,120,200,0.15);color:#e0ecf8}
+.em-item:last-child{border-bottom:none}
+.em-item svg{opacity:0.5;flex-shrink:0}
+.em-item:hover svg{opacity:0.8}
+
 /* ── Search ── */
 #search-wrap{position:relative;flex:0 1 200px;min-width:120px}
 #search-input{width:100%;font-family:'DM Sans',sans-serif;font-size:11px;padding:4px 8px 4px 26px;border:1px solid rgba(255,255,255,0.1);border-radius:7px;background:rgba(255,255,255,0.05);color:#e0e8f0;outline:none}
@@ -207,10 +216,30 @@ select{font-family:'DM Sans',system-ui,sans-serif;font-size:11px;padding:2px 6px
     <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
     Refresh
   </button>
-  <button class="tb-btn" onclick="exportScreenshot()">
-    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-    Export
-  </button>
+  <div id="export-wrap" style="position:relative">
+    <button class="tb-btn" onclick="toggleExportMenu()">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      Export ▾
+    </button>
+    <div id="export-menu">
+      <div class="em-item" onclick="exportScreenshot();toggleExportMenu()">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+        Screenshot (PNG)
+      </div>
+      <div class="em-item" onclick="exportCSV();toggleExportMenu()">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        Full Dataset (CSV)
+      </div>
+      <div class="em-item" onclick="exportJSON();toggleExportMenu()">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+        Raw Data (JSON)
+      </div>
+      <div class="em-item" onclick="exportLocationReport();toggleExportMenu()">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+        Location Report (HTML)
+      </div>
+    </div>
+  </div>
 </div>
 
 <div id="layer-panel">
@@ -948,12 +977,112 @@ document.addEventListener('click',e=>{if(!e.target.closest('#search-wrap'))searc
 function searchGo(lat,lon,name){searchResults.style.display='none';searchInput.value=name;if(isGlobeProj()){rotLon=-lon;rotLat=lat;}zoomK=Math.max(zoomK,2.5);showInfo(lat,lon,null,null);}
 
 /* ── Export ── */
+/* ── Export menu ── */
+function toggleExportMenu(){document.getElementById('export-menu').classList.toggle('open');}
+document.addEventListener('click',e=>{if(!e.target.closest('#export-wrap'))document.getElementById('export-menu').classList.remove('open');});
+
 function exportScreenshot(){
   const exp=document.createElement('canvas');exp.width=gc.width;exp.height=gc.height;const ectx=exp.getContext('2d');
   ectx.drawImage(gc,0,0);ectx.drawImage(wc,0,0);
   ectx.font='10px "DM Sans",sans-serif';ectx.fillStyle='rgba(255,255,255,0.2)';
   ectx.fillText('PFAS Global Monitor · Sam Holmes · '+timelineYear,10,gc.height-10);
   const link=document.createElement('a');link.download='pfas-map-'+timelineYear+'.png';link.href=exp.toDataURL('image/png');link.click();
+}
+
+function exportCSV(){
+  let csv='Type,Name,Latitude,Longitude,PFAS_Index,Risk_Level,Source,Agency,Last_Collected,Frequency,PM25,AQI,Detail\n';
+  pfasHotspots.forEach(h=>{
+    const lv=yearScale(h.lv,timelineYear);const risk=lv<.25?'Low':lv<.45?'Moderate':lv<.6?'Elevated':lv<.75?'High':'Critical';
+    csv+=`PFAS Hotspot,"${h.name}",${h.lat},${h.lon},${Math.round(lv*100)/100},${risk},"${h.src||''}",,,,${Math.round(2+lv*62)},${Math.round(12+lv*275)},\n`;
+  });
+  cdcRiskAreas.forEach(a=>{
+    csv+=`CDC At-Risk,"${a.name}",${a.lat},${a.lon},,${a.risk},"${a.src}",,,,,,\"${a.detail.replace(/"/g,"'")}\"\n`;
+  });
+  pfasMonStations.forEach(s=>{
+    csv+=`Monitor Station,"${s.name}",${s.lat},${s.lon},,,"","${s.agency}",${s.lastCollected},${s.freq},,,\n`;
+  });
+  openAQStations.forEach(s=>{
+    csv+=`OpenAQ Sensor,"${s.name||''}",${s.lat},${s.lon},,,,,,${s.pm25||''},${s.aqi||''},\n`;
+  });
+  const blob=new Blob([csv],{type:'text/csv'});const link=document.createElement('a');
+  link.download='pfas-dataset-'+timelineYear+'.csv';link.href=URL.createObjectURL(blob);link.click();URL.revokeObjectURL(link.href);
+}
+
+function exportJSON(){
+  const data={
+    metadata:{title:'PFAS Global Monitor Dataset',author:'Sam Holmes',exportDate:new Date().toISOString(),timelineYear,note:'PFAS indices are modeled estimates scaled to the selected year. OpenAQ data is live.'},
+    pfasHotspots:pfasHotspots.map(h=>({...h,scaledLevel:Math.round(yearScale(h.lv,timelineYear)*100)/100})),
+    cdcRiskAreas:cdcRiskAreas,
+    monitoringStations:pfasMonStations,
+    openAQStations:openAQStations,
+    pm25Regions:pm25Regions,
+    oceanCurrents:oceanCurrents.map(c=>({name:c.name,pointCount:c.pts.length})),
+  };
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});const link=document.createElement('a');
+  link.download='pfas-data-'+timelineYear+'.json';link.href=URL.createObjectURL(blob);link.click();URL.revokeObjectURL(link.href);
+}
+
+function exportLocationReport(){
+  if(!selPt){alert('Click a location on the map first to generate a report.');return;}
+  const spot=nearest(selPt.lat,selPt.lon);const st=nearestStation(selPt.lat,selPt.lon);
+  const aq=nearestOpenAQ(selPt.lat,selPt.lon);const riskArea=nearestRiskArea(selPt.lat,selPt.lon);
+  const scaledLv=yearScale(spot.lv,timelineYear);
+  const pm25=aq?Math.round(aq.pm25*10)/10:Math.round(2+scaledLv*62);
+  const aqi=aq?Math.round(aq.aqi):Math.round(12+scaledLv*275);
+  const pfasIdx=Math.round(scaledLv*100)/100;
+  const advice=getHealthAdvice(pfasIdx,aqi,pm25,riskArea);
+  const riskLabel=pfasIdx<.25?'Low':pfasIdx<.45?'Moderate':pfasIdx<.6?'Elevated':pfasIdx<.75?'High':'Critical';
+  const aqiLabel=aqi<50?'Good':aqi<100?'Moderate':aqi<150?'USG':aqi<200?'Unhealthy':aqi<300?'Very Unhealthy':'Hazardous';
+
+  const html=`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>PFAS Location Report — ${spot.name}</title>
+<style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:system-ui,-apple-system,sans-serif;max-width:700px;margin:40px auto;padding:20px;color:#1a1a1a;line-height:1.5}
+.header{border-bottom:3px solid #1a3a5c;padding-bottom:12px;margin-bottom:20px}.header h1{font-size:18px;color:#1a3a5c}.header p{font-size:11px;color:#666;margin-top:4px}
+.section{margin-bottom:18px;padding:14px;background:#f8f9fa;border-radius:8px;border-left:4px solid #1a3a5c}
+.section h2{font-size:13px;color:#1a3a5c;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.metric{padding:10px;background:white;border-radius:6px;border:1px solid #e0e0e0}
+.metric .label{font-size:9px;text-transform:uppercase;color:#888;letter-spacing:0.3px}.metric .value{font-size:16px;font-weight:600;margin-top:2px}
+.risk-low{color:#2d8a4e}.risk-moderate{color:#b8860b}.risk-elevated{color:#d2691e}.risk-high{color:#cc3333}.risk-critical{color:#6a0dad}
+.advice{padding:10px;border-radius:6px;font-size:12px;margin-top:4px;line-height:1.5}
+.advice.safe{background:#e8f5e9;border:1px solid #c8e6c9;color:#2e7d32}.advice.warn{background:#fbe9e7;border:1px solid #ffccbc;color:#c62828}
+.footer{margin-top:24px;padding-top:12px;border-top:1px solid #ddd;font-size:9px;color:#999;text-align:center}
+table{width:100%;border-collapse:collapse;font-size:11px;margin-top:6px}td,th{padding:4px 8px;text-align:left;border-bottom:1px solid #eee}th{color:#666;font-weight:500;font-size:9px;text-transform:uppercase}
+@media print{body{margin:20px}}</style></head><body>
+<div class="header"><h1>PFAS Location Assessment Report</h1><p>PFAS Global Monitor · Sam Holmes · Generated ${new Date().toLocaleDateString()} · Timeline: ${timelineYear}</p></div>
+
+<div class="section"><h2>Location</h2>
+<table><tr><th>Site</th><td><strong>${spot.name}</strong>${spot.est?' (estimated)':''}</td></tr>
+<tr><th>Coordinates</th><td>${selPt.lat}°, ${selPt.lon}°</td></tr>
+<tr><th>Data Source</th><td>${spot.src||'Modeled estimate'}</td></tr>
+${riskArea?`<tr><th>CDC/ATSDR Status</th><td style="color:#cc3333"><strong>${riskArea.risk} Risk</strong> — ${riskArea.name}</td></tr>`:''}
+</table></div>
+
+<div class="section"><h2>Environmental Indicators (${timelineYear})</h2>
+<div class="grid">
+<div class="metric"><div class="label">PFAS Index</div><div class="value risk-${riskLabel.toLowerCase()}">${pfasIdx} — ${riskLabel}</div></div>
+<div class="metric"><div class="label">PM2.5</div><div class="value">${pm25} μg/m³ ${aq?'(live)':'(est.)'}</div></div>
+<div class="metric"><div class="label">Air Quality Index</div><div class="value">${aqi} — ${aqiLabel}</div></div>
+<div class="metric"><div class="label">Data Mode</div><div class="value">${timelineYear>=2025?'Live + Current Estimates':'Historical Model'}</div></div>
+</div></div>
+
+${riskArea?`<div class="section" style="border-left-color:#cc3333"><h2>CDC/ATSDR Risk Assessment</h2>
+<table><tr><th>Site</th><td>${riskArea.name}</td></tr><tr><th>Risk Level</th><td><strong>${riskArea.risk}</strong></td></tr>
+<tr><th>Source</th><td>${riskArea.src}</td></tr><tr><th>Details</th><td>${riskArea.detail}</td></tr></table></div>`:''}
+
+${st?`<div class="section"><h2>Nearest Monitoring Station</h2>
+<table><tr><th>Station</th><td>${st.name}</td></tr><tr><th>Agency</th><td>${st.agency}</td></tr>
+<tr><th>Last Collected</th><td>${st.lastCollected}</td></tr><tr><th>Frequency</th><td>${st.freq}</td></tr>
+<tr><th>Sensors</th><td style="font-size:10px">${st.sensors||'N/A'}</td></tr></table></div>`:''}
+
+<div class="section"><h2>Health & Action Guidance</h2>
+${advice.items.map(item=>`<div class="advice ${advice.isWarn?'warn':'safe'}">${item}</div>`).join('')}
+</div>
+
+<div class="footer">PFAS Global Monitor · Sam Holmes · Data: EPA ATSDR, CDC, OpenAQ, DoD AFFF Inventory, EMEP, state agencies · PFAS indices are modeled estimates · PM2.5/AQI from OpenAQ where available · Report generated for coordinates ${selPt.lat}°, ${selPt.lon}° at timeline year ${timelineYear}</div>
+</body></html>`;
+
+  const blob=new Blob([html],{type:'text/html'});const link=document.createElement('a');
+  link.download='pfas-report-'+spot.name.replace(/[^a-zA-Z0-9]/g,'-').substring(0,30)+'.html';
+  link.href=URL.createObjectURL(blob);link.click();URL.revokeObjectURL(link.href);
 }
 
 /* ── Interactions ── */
