@@ -134,6 +134,36 @@ select{font-family:'DM Sans',system-ui,sans-serif;font-size:11px;padding:2px 6px
 .trace-btn{display:flex;align-items:center;gap:5px;margin-top:8px;padding:6px 10px;border:1px solid rgba(255,160,40,0.3);border-radius:7px;background:rgba(255,160,40,0.08);color:#f0b040;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:10px;font-weight:500;width:100%;justify-content:center;transition:all 0.15s}
 .trace-btn:hover{background:rgba(255,160,40,0.18);border-color:rgba(255,160,40,0.5)}
 
+/* ── Compare panel ── */
+#compare-panel{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(10,16,28,0.95);backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,0.1);border-radius:16px;padding:0;min-width:420px;max-width:720px;width:90%;font-size:11px;color:#b0bcc8;z-index:40;display:none;max-height:80vh;overflow:hidden;box-shadow:0 12px 48px rgba(0,0,0,0.5)}
+#cp-header{padding:12px 16px 8px;border-bottom:1px solid rgba(255,255,255,0.06);display:flex;align-items:center;justify-content:space-between}
+#cp-header h3{font-size:13px;font-weight:600;color:#e4ecf4;display:flex;align-items:center;gap:6px}
+#cp-close{width:22px;height:22px;border:none;background:rgba(255,255,255,0.06);color:rgba(255,255,255,0.4);cursor:pointer;border-radius:5px;font-size:12px;display:flex;align-items:center;justify-content:center}
+#cp-close:hover{background:rgba(255,255,255,0.12);color:#e0e8f0}
+#cp-body{padding:12px 16px 16px;overflow-y:auto;max-height:calc(80vh - 50px)}
+.cp-cols{display:flex;gap:10px}
+.cp-col{flex:1;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.06);border-radius:10px;padding:10px;position:relative}
+.cp-col-header{font-size:11px;font-weight:600;color:#e0ecf4;margin-bottom:2px;padding-right:20px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cp-col-sub{font-family:'JetBrains Mono',monospace;font-size:9px;color:rgba(255,255,255,0.25);margin-bottom:8px}
+.cp-col-remove{position:absolute;top:8px;right:8px;width:16px;height:16px;border:none;background:rgba(255,255,255,0.05);color:rgba(255,255,255,0.3);cursor:pointer;border-radius:3px;font-size:10px;display:flex;align-items:center;justify-content:center}
+.cp-col-remove:hover{background:rgba(200,60,60,0.2);color:#e08080}
+.cp-metric-row{display:flex;align-items:center;gap:6px;padding:5px 0;border-bottom:1px solid rgba(255,255,255,0.03)}
+.cp-metric-label{font-size:8px;color:rgba(255,255,255,0.3);text-transform:uppercase;letter-spacing:0.3px;width:55px;flex-shrink:0}
+.cp-bar-wrap{flex:1;height:8px;background:rgba(255,255,255,0.04);border-radius:4px;overflow:hidden}
+.cp-bar{height:100%;border-radius:4px;transition:width 0.4s ease}
+.cp-metric-val{font-family:'JetBrains Mono',monospace;font-size:10px;color:#d0dce8;min-width:40px;text-align:right}
+.cp-risk-tag{display:inline-block;padding:2px 6px;border-radius:4px;font-size:9px;font-weight:500;margin-top:4px}
+.cp-section-title{font-size:9px;font-weight:600;color:rgba(255,255,255,0.4);text-transform:uppercase;letter-spacing:0.5px;margin:10px 0 6px;padding-top:6px;border-top:1px solid rgba(255,255,255,0.04)}
+.cp-advice{font-size:9px;color:rgba(255,255,255,0.45);line-height:1.4;margin-top:4px}
+.cp-empty{text-align:center;padding:30px 20px;color:rgba(255,255,255,0.25);font-size:11px;line-height:1.5}
+.cp-empty svg{margin-bottom:8px;opacity:0.3}
+/* Compare button in info panel */
+.compare-btn{display:flex;align-items:center;gap:5px;margin-top:6px;padding:5px 10px;border:1px solid rgba(80,160,240,0.25);border-radius:7px;background:rgba(80,160,240,0.06);color:#7ec0f0;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:10px;font-weight:500;width:100%;justify-content:center;transition:all 0.15s}
+.compare-btn:hover{background:rgba(80,160,240,0.15);border-color:rgba(80,160,240,0.4)}
+.compare-btn.added{border-color:rgba(80,200,120,0.3);color:#70d8a0;background:rgba(80,200,120,0.06)}
+/* Compare badge counter in topbar */
+#compare-count{display:inline-flex;align-items:center;justify-content:center;min-width:16px;height:16px;border-radius:8px;background:rgba(80,160,240,0.3);color:#7ec0f0;font-size:9px;font-weight:600;padding:0 4px}
+
 /* ── Badges ── */
 .badge{display:inline-block;padding:2px 6px;border-radius:5px;font-size:10px;font-weight:500}
 .bg{background:rgba(40,120,40,0.25);color:#7ecf7e}
@@ -183,6 +213,8 @@ select{font-family:'DM Sans',system-ui,sans-serif;font-size:11px;padding:2px 6px
   #layer-panel{width:170px}
   #zoom-ctrl{bottom:80px}
   #zoom-ctrl button{width:28px;height:28px;font-size:14px}
+  #compare-panel{min-width:auto;width:95%;max-height:70vh}
+  .cp-cols{flex-direction:column}
 }
 </style>
 
@@ -212,6 +244,10 @@ select{font-family:'DM Sans',system-ui,sans-serif;font-size:11px;padding:2px 6px
   <button class="tb-btn" onclick="locateMe()">
     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/></svg>
     Locate Me
+  </button>
+  <button class="tb-btn" id="compare-btn" onclick="toggleComparePanel()">
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="18" rx="1"/><rect x="14" y="3" width="7" height="18" rx="1"/></svg>
+    Compare <span id="compare-count" style="display:none">0</span>
   </button>
   <button class="tb-btn" onclick="fetchOpenAQ()">
     <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
@@ -310,6 +346,10 @@ select{font-family:'DM Sans',system-ui,sans-serif;font-size:11px;padding:2px 6px
     <span id="tl-label">Year</span>
     <input type="range" id="tl-slider" min="2000" max="2025" value="2025" step="1" oninput="setTimelineYear(this.value)">
     <span id="tl-year">2025</span>
+  </div>
+  <div id="compare-panel">
+    <div id="cp-header"><h3><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="18" rx="1"/><rect x="14" y="3" width="7" height="18" rx="1"/></svg> Location Comparison</h3><button id="cp-close" onclick="toggleComparePanel()">✕</button></div>
+    <div id="cp-body"></div>
   </div>
   <div id="rot-hint">Drag to rotate · Scroll to zoom</div>
 </div>
@@ -671,6 +711,15 @@ function drawFrame(){
 
   if(selPt){const pt=p([selPt.lon,selPt.lat]);if(pt){ctx.beginPath();ctx.arc(pt[0],pt[1],9,0,Math.PI*2);ctx.strokeStyle='rgba(120,200,248,0.45)';ctx.lineWidth=1.3;ctx.stroke();ctx.beginPath();ctx.arc(pt[0],pt[1],2.5,0,Math.PI*2);ctx.fillStyle='#7ec8f8';ctx.fill();}}
 
+  // Compare location markers
+  const cpColors=['#7ec0f0','#f0b040','#b080f0'];
+  compareLocations.forEach((cl,i)=>{
+    const pt=p([cl.lon,cl.lat]);if(!pt)return;
+    ctx.beginPath();ctx.arc(pt[0],pt[1],10,0,Math.PI*2);ctx.strokeStyle=cpColors[i%3];ctx.lineWidth=2;ctx.setLineDash([4,3]);ctx.stroke();ctx.setLineDash([]);
+    ctx.beginPath();ctx.arc(pt[0],pt[1],3,0,Math.PI*2);ctx.fillStyle=cpColors[i%3];ctx.fill();
+    ctx.font='600 9px "DM Sans",sans-serif';ctx.fillStyle=cpColors[i%3];ctx.fillText(String.fromCharCode(65+i),pt[0]+12,pt[1]-6);
+  });
+
   ctx.beginPath();path({type:'Sphere'});ctx.strokeStyle='rgba(50,100,170,0.18)';ctx.lineWidth=1;ctx.stroke();
 
   // Historical mode: subtle amber tint over the globe
@@ -949,6 +998,17 @@ async function showInfo(lat,lon,stationOverride,aqStation){
     html+=`<button class="trace-btn" style="border-color:rgba(200,60,60,0.3);color:#e07070;background:rgba(200,60,60,0.08)" onclick="stopTrace()">✕ Stop Trace</button>`;
   }
 
+  // Compare button
+  const alreadyAdded=compareLocations.some(c=>Math.abs(c.lat-lat)<0.01&&Math.abs(c.lon-lon)<0.01);
+  if(compareLocations.length<3&&!alreadyAdded){
+    html+=`<button class="compare-btn" onclick="addToCompare(${lat},${lon},'${locName.replace(/'/g,"\\'")}',${pfasIdx},${pm25},${aqi},'${locSrc||''}',${riskArea?'true':'false'},'${riskArea?riskArea.risk:''}')">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="18" rx="1"/><rect x="14" y="3" width="7" height="18" rx="1"/></svg>
+      Add to Compare (${compareLocations.length}/3)
+    </button>`;
+  } else if(alreadyAdded){
+    html+=`<button class="compare-btn added" disabled>✓ Added to Compare</button>`;
+  }
+
   document.getElementById('info-body').innerHTML=html;
   document.getElementById('info').style.display='block';
   drawFrame();
@@ -1125,6 +1185,151 @@ ${advice.items.map(item=>`<div class="advice ${advice.isWarn?'warn':'safe'}">${i
   link.download='pfas-report-'+locName.replace(/[^a-zA-Z0-9]/g,'-').substring(0,30)+'.html';
   link.href=URL.createObjectURL(blob);link.click();URL.revokeObjectURL(link.href);
 }
+
+/* ── Location Comparison Tool ── */
+let compareLocations=[];
+let comparePanelOpen=false;
+
+function addToCompare(lat,lon,name,pfas,pm25,aqi,src,hasRisk,riskLevel){
+  if(compareLocations.length>=3)return;
+  if(compareLocations.some(c=>Math.abs(c.lat-lat)<0.01&&Math.abs(c.lon-lon)<0.01))return;
+  compareLocations.push({lat,lon,name,pfas,pm25,aqi,src,hasRisk:hasRisk==='true'||hasRisk===true,riskLevel,year:timelineYear});
+  updateCompareCount();
+  // Re-render info panel to update button state
+  showInfo(lat,lon,null,null);
+  if(compareLocations.length>=2)renderComparePanel();
+}
+
+function removeFromCompare(idx){
+  compareLocations.splice(idx,1);
+  updateCompareCount();
+  renderComparePanel();
+  drawFrame();
+}
+
+function clearCompare(){
+  compareLocations=[];
+  updateCompareCount();
+  renderComparePanel();
+  drawFrame();
+}
+
+function updateCompareCount(){
+  const badge=document.getElementById('compare-count');
+  const btn=document.getElementById('compare-btn');
+  if(compareLocations.length>0){
+    badge.style.display='inline-flex';badge.textContent=compareLocations.length;
+    btn.classList.add('active');
+  } else {
+    badge.style.display='none';btn.classList.remove('active');
+  }
+}
+
+function toggleComparePanel(){
+  comparePanelOpen=!comparePanelOpen;
+  document.getElementById('compare-panel').style.display=comparePanelOpen?'block':'none';
+  if(comparePanelOpen)renderComparePanel();
+}
+
+function barColor(metric,val){
+  if(metric==='pfas'){
+    if(val<0.25)return'rgba(40,180,60,0.7)';if(val<0.45)return'rgba(200,160,20,0.7)';
+    if(val<0.6)return'rgba(220,100,30,0.7)';if(val<0.75)return'rgba(210,50,50,0.7)';return'rgba(100,70,210,0.7)';
+  }
+  if(metric==='aqi'){
+    if(val<50)return'rgba(0,153,102,0.7)';if(val<100)return'rgba(255,222,51,0.7)';
+    if(val<150)return'rgba(255,153,51,0.7)';if(val<200)return'rgba(204,0,51,0.7)';return'rgba(102,0,153,0.7)';
+  }
+  if(metric==='pm25'){
+    if(val<12)return'rgba(0,153,102,0.7)';if(val<35)return'rgba(255,222,51,0.7)';
+    if(val<55)return'rgba(255,153,51,0.7)';if(val<150)return'rgba(204,0,51,0.7)';return'rgba(102,0,153,0.7)';
+  }
+  return'rgba(100,160,220,0.6)';
+}
+
+function riskTagHtml(level){
+  if(level==='Critical')return'<span class="cp-risk-tag" style="background:rgba(100,70,210,0.2);color:#b0a0f8">Critical</span>';
+  if(level==='High')return'<span class="cp-risk-tag" style="background:rgba(210,50,50,0.2);color:#f07070">High</span>';
+  if(level==='Elevated')return'<span class="cp-risk-tag" style="background:rgba(220,130,30,0.2);color:#f0a050">Elevated</span>';
+  return'<span class="cp-risk-tag" style="background:rgba(40,120,40,0.15);color:#70c870">None</span>';
+}
+
+function renderComparePanel(){
+  const body=document.getElementById('cp-body');
+  if(compareLocations.length===0){
+    body.innerHTML=`<div class="cp-empty">
+      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="7" height="18" rx="1"/><rect x="14" y="3" width="7" height="18" rx="1"/></svg>
+      <div>Click locations on the map, then use<br><strong>"Add to Compare"</strong> in the info panel.<br><span style="font-size:10px;opacity:0.5">Compare up to 3 locations side-by-side.</span></div>
+    </div>`;
+    return;
+  }
+  if(compareLocations.length===1){
+    body.innerHTML=`<div class="cp-empty" style="padding:20px">
+      <div><strong>${compareLocations[0].name}</strong> flagged.<br>Click another location and add it to compare.</div>
+      <button onclick="clearCompare()" style="margin-top:10px;padding:4px 12px;border:1px solid rgba(200,60,60,0.2);border-radius:5px;background:rgba(200,60,60,0.06);color:#e08080;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:10px">Clear</button>
+    </div>`;
+    return;
+  }
+
+  // Find max values for bar scaling
+  const maxPfas=Math.max(...compareLocations.map(c=>c.pfas),0.01);
+  const maxPm25=Math.max(...compareLocations.map(c=>c.pm25),1);
+  const maxAqi=Math.max(...compareLocations.map(c=>c.aqi),1);
+
+  let html='<div class="cp-cols">';
+  compareLocations.forEach((loc,i)=>{
+    const pfasPct=Math.min((loc.pfas/maxPfas)*100,100);
+    const pm25Pct=Math.min((loc.pm25/maxPm25)*100,100);
+    const aqiPct=Math.min((loc.aqi/maxAqi)*100,100);
+
+    html+=`<div class="cp-col">
+      <button class="cp-col-remove" onclick="removeFromCompare(${i})">✕</button>
+      <div class="cp-col-header">${loc.name}</div>
+      <div class="cp-col-sub">${loc.lat}°, ${loc.lon}° · ${loc.year}</div>
+
+      <div class="cp-metric-row">
+        <div class="cp-metric-label">PFAS</div>
+        <div class="cp-bar-wrap"><div class="cp-bar" style="width:${pfasPct}%;background:${barColor('pfas',loc.pfas)}"></div></div>
+        <div class="cp-metric-val">${loc.pfas}</div>
+      </div>
+      <div class="cp-metric-row">
+        <div class="cp-metric-label">PM2.5</div>
+        <div class="cp-bar-wrap"><div class="cp-bar" style="width:${pm25Pct}%;background:${barColor('pm25',loc.pm25)}"></div></div>
+        <div class="cp-metric-val">${loc.pm25}</div>
+      </div>
+      <div class="cp-metric-row">
+        <div class="cp-metric-label">AQI</div>
+        <div class="cp-bar-wrap"><div class="cp-bar" style="width:${aqiPct}%;background:${barColor('aqi',loc.aqi)}"></div></div>
+        <div class="cp-metric-val">${loc.aqi}</div>
+      </div>
+
+      <div class="cp-section-title">Risk Status</div>
+      ${loc.hasRisk?riskTagHtml(loc.riskLevel):riskTagHtml('')}
+
+      <div class="cp-section-title">Source</div>
+      <div class="cp-advice">${loc.src||'Modeled estimate'}</div>
+    </div>`;
+  });
+  html+=`</div>`;
+
+  // Summary row
+  const highest=compareLocations.reduce((a,b)=>a.pfas>b.pfas?a:b);
+  const lowest=compareLocations.reduce((a,b)=>a.pfas<b.pfas?a:b);
+  const pfasDiff=Math.round((highest.pfas-lowest.pfas)*100)/100;
+  const aqiDiff=Math.abs(highest.aqi-lowest.aqi);
+  html+=`<div style="margin-top:12px;padding:10px;background:rgba(80,160,240,0.05);border:1px solid rgba(80,160,240,0.1);border-radius:8px;font-size:10px;color:rgba(200,220,240,0.7)">
+    <strong style="color:#7ec0f0">Summary:</strong> ${highest.name} has the highest PFAS index (${highest.pfas}) — ${pfasDiff>0?`${pfasDiff} higher than ${lowest.name}`:'same as other locations'}. AQI differs by ${aqiDiff} points across sites.
+  </div>`;
+
+  html+=`<div style="margin-top:8px;text-align:center"><button onclick="clearCompare()" style="padding:5px 16px;border:1px solid rgba(200,60,60,0.2);border-radius:6px;background:rgba(200,60,60,0.06);color:#e08080;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:10px">Clear All</button></div>`;
+
+  body.innerHTML=html;
+}
+
+/* ── Draw compare markers on globe ── */
+const origDrawFrame=drawFrame;
+// Extend drawFrame to show compare pins
+const _origDF=drawFrame;
 
 /* ── Interactions ── */
 gc.addEventListener('click',e=>{
